@@ -1,15 +1,15 @@
-{"value": "1", "timestamp": "1970-01-01T00:00:00+00","DayPrediction": 1, "MonthPrediction":  1, "YearPrediction":  1}
-{"value": "2", "timestamp": "1970-01-02T00:00:00+00"}
-{"value": "3", "timestamp": "1970-01-03T00:00:00+00"}
-{"value": "4", "timestamp": "1970-01-04T00:00:00+00"}
-{"value": "5", "timestamp": "1970-01-05T00:00:00+00"}
-{"value": "6", "timestamp": "1970-01-06T00:00:00+00"}
-{"value": "7", "timestamp": "1970-01-07T00:00:00+00"}
-{"value": "8", "timestamp": "1970-01-08T00:00:00+00"}
-{"value": "9", "timestamp": "1970-01-09T00:00:00+00"}
-{"value": "10", "timestamp": "1970-01-10T00:00:00+00"}
-{"value": "11", "timestamp": "1970-01-11T00:00:00+00"}
-{"value": "12", "timestamp": "1970-01-12T00:00:00+00"}
-{"value": "13", "timestamp": "1970-01-13T00:00:00+00"}
-{"value": "14", "timestamp": "1970-01-14T00:00:00+00"}
-{"value": "15", "timestamp": "1970-01-15T00:00:00+00","DayPrediction": 16, "MonthPrediction":  32, "YearPrediction":  366}
+{"value": "1", "timestamp": "1970-01-01T00:00:00","DayPrediction": 1, "MonthPrediction":  1, "YearPrediction":  1}
+{"value": "2", "timestamp": "1970-01-02T00:00:00"}
+{"value": "3", "timestamp": "1970-01-03T00:00:00"}
+{"value": "4", "timestamp": "1970-01-04T00:00:00"}
+{"value": "5", "timestamp": "1970-01-05T00:00:00"}
+{"value": "6", "timestamp": "1970-01-06T00:00:00"}
+{"value": "7", "timestamp": "1970-01-07T00:00:00"}
+{"value": "8", "timestamp": "1970-01-08T00:00:00"}
+{"value": "9", "timestamp": "1970-01-09T00:00:00"}
+{"value": "10", "timestamp": "1970-01-10T00:00:00"}
+{"value": "11", "timestamp": "1970-01-11T00:00:00"}
+{"value": "12", "timestamp": "1970-01-12T00:00:00"}
+{"value": "13", "timestamp": "1970-01-13T00:00:00"}
+{"value": "14", "timestamp": "1970-01-14T00:00:00"}
+{"value": "15", "timestamp": "1970-01-15T00:00:00","DayPrediction": 15, "MonthPrediction":  32, "YearPrediction":  366}
