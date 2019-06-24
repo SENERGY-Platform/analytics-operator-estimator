@@ -12,4 +12,4 @@
 {"value": "12", "timestamp": "1970-01-12T00:00:00"}
 {"value": "13", "timestamp": "1970-01-13T00:00:00"}
 {"value": "14", "timestamp": "1970-01-14T00:00:00"}
-{"value": "15", "timestamp": "1970-01-15T00:00:00","DayPrediction": 15, "MonthPrediction":  32, "YearPrediction":  366}
+{"value": "15", "timestamp": "1970-01-15T00:00:00","DayPrediction": 16, "MonthPrediction":  32, "YearPrediction":  366}

@@ -26,6 +26,7 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class Estimator implements OperatorInterface {
         Instance eoy = new DenseInstance(1); //End Of Year
 
         Instant instant = Instant.ofEpochMilli(DateTimeUtils.currentTimeMillis()); //Needs to use this method for testing
-        ZoneId zoneId = ZoneId.of( "Europe/Berlin" ); //TODO
+        ZoneId zoneId = ZoneId.of( OffsetDateTime.now().getOffset().toString() ); //Assumes local
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
         String tsEOD = DateParser.parseDate(zdt.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOM = DateParser.parseDate(zdt.plusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
