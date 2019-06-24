@@ -72,7 +72,7 @@
         <dependency>
             <groupId>com.github.SENERGY-Platform</groupId>
             <artifactId>util-dateparser</artifactId>
-            <version>15e51dfbb5502bc3fc7bd08419d3ac40550fa293</version>
+            <version>0.1.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
