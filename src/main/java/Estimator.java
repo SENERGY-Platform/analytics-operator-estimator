@@ -53,39 +53,26 @@ public class Estimator implements OperatorInterface {
 
     @Override
     public void run(Message message) {
-        //Extract year, month and day from message
         TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
-
 
         //Prepare values from message
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
         final double value = message.getInput("value").getValue();
 
 
-        //Insert message values in Instances for year, month and day
+        //Insert message values in Instances
         Instance instance = new DenseInstance(2);
         instance.setDataset(instances);
         instance.setValue(0, timestamp);
         instance.setValue(1, value);
         instances.add(instance);
 
-        //Build classifiers
-        try {
-
-        } catch (Exception e) {
-            System.err.println("Could not build Classifier: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        //prepare instances for predction
-        Instance eod = new DenseInstance(1); //End Of Day
-        Instance eom = new DenseInstance(1); //End Of Month
-        Instance eoy = new DenseInstance(1); //End Of Year
-
         //Calculate timestamps for prediction
         Instant instant = Instant.ofEpochMilli(DateTimeUtils.currentTimeMillis()); //Needs to use this method for testing
         ZoneId zoneId = ZoneId.of( OffsetDateTime.now().getOffset().toString() ); //Assumes local
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+
+        //Create Strings representing start and end of day, month and year
         String tsEODs = DateParser.parseDate(zdt.withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOMs = DateParser.parseDate(zdt.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOYs = DateParser.parseDate(zdt.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
@@ -93,6 +80,7 @@ public class Estimator implements OperatorInterface {
         String tsEOM = DateParser.parseDate(zdt.plusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOY = DateParser.parseDate(zdt.plusYears(1).withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
 
+        //Convert created Strings into long timestamps
         long tsEODls = DateParser.parseDateMills(tsEODs);
         long tsEOMls = DateParser.parseDateMills(tsEOMs);
         long tsEOYls = DateParser.parseDateMills(tsEOYs);
@@ -100,11 +88,16 @@ public class Estimator implements OperatorInterface {
         long tsEOMl = DateParser.parseDateMills(tsEOM);
         long tsEOYl = DateParser.parseDateMills(tsEOY);
 
+        //prepare instances for prediction
+        Instance eod = new DenseInstance(1); //End Of Day
+        Instance eom = new DenseInstance(1); //End Of Month
+        Instance eoy = new DenseInstance(1); //End Of Year
         eod.setValue(0, tsEODl);
         eom.setValue(0, tsEOMl);
         eoy.setValue(0, tsEOYl);
 
         try {
+            //Train classifiers and calculate predictions
             classifier.buildClassifier(filter(tsEODls,tsEODl,instances));
             double predEOD = classifier.classifyInstance(eod);
 
@@ -114,6 +107,7 @@ public class Estimator implements OperatorInterface {
             classifier.buildClassifier(filter(tsEOYls, tsEOYl, instances));
             double predEOY = classifier.classifyInstance(eoy);
 
+            //Submit results
             message.output("DayTimestamp", tsEOD);
             message.output("DayPrediction", predEOD);
             message.output("MonthTimestamp", tsEOM);
@@ -121,7 +115,7 @@ public class Estimator implements OperatorInterface {
             message.output("YearTimestamp", tsEOY);
             message.output("YearPrediction", predEOY);
 
-        } catch (Exception e) {
+        } catch (Exception e) { //Building, filtering and predicting may throw exception
             System.err.println("Could not calculate prediction: " + e.getMessage());
             e.printStackTrace();
         }
