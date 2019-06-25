@@ -24,20 +24,21 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.filters.Filter;
+import weka.filters.unsupervised.instance.RemoveWithValues;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 
 
 public class Estimator implements OperatorInterface {
-    protected Instances[][][] instances;
-    protected Classifier[][][] classifiers;
+    protected Instances instances;
+    protected Classifier classifier;
     protected ArrayList<Attribute> attributesList;
 
 
@@ -45,43 +46,16 @@ public class Estimator implements OperatorInterface {
         attributesList = new ArrayList<>();
         attributesList.add(new Attribute("timestamp"));
         attributesList.add(new Attribute("value"));
-        instances = new Instances[3000][][];
-        classifiers = new Classifier[3000][][];
+        instances =  new Instances("", attributesList, 1);
+        instances.setClassIndex(1);
+        classifier = new LinearRegression();
     }
 
     @Override
     public void run(Message message) {
         //Extract year, month and day from message
         TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
-        final int year = temporalAccessor.get(ChronoField.YEAR);
-        final int month = temporalAccessor.get(ChronoField.MONTH_OF_YEAR);
-        final int day = temporalAccessor.get(ChronoField.DAY_OF_MONTH);
 
-        //Initialize Arrays for month and day if needed
-        if(instances[year] == null || classifiers[year] == null){
-            instances[year] = new Instances[13][]; //need one for the whole year
-            classifiers[year] = new Classifier[13][];
-        }
-        if(instances[year][month] == null || classifiers[year][month] == null){
-            instances[year][month] = new Instances[32]; //need one for the whole month
-            classifiers[year][month] = new Classifier[32];
-        }
-
-        //Initialize Instances and Linear Regression for year, month and day if needed
-        if(instances[year][0] == null || classifiers[year][0] == null){ //[year][0][0] is the for the whole year
-            instances[year][0] = new Instances[1];
-            classifiers[year][0] = new LinearRegression[1];
-            instances[year][0][0] = getInstances();
-            classifiers[year][0][0] = getClassifier();
-        }
-        if(instances[year][month][0] == null || classifiers[year][month][0] == null){ //[year][month][0] is for the whle month
-            instances[year][month][0] = getInstances();
-            classifiers[year][month][0] = getClassifier();
-        }
-        if(instances[year][month][day] == null || classifiers[year][month][day] == null){ //[year][month][day] is for the day
-            instances[year][month][day] = getInstances();
-            classifiers[year][month][day] = getClassifier();
-        }
 
         //Prepare values from message
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
@@ -89,29 +63,15 @@ public class Estimator implements OperatorInterface {
 
 
         //Insert message values in Instances for year, month and day
-        Instance instanceYear = new DenseInstance(2);
-        instanceYear.setDataset(instances[year][0][0]);
-        instanceYear.setValue(0, timestamp);
-        instanceYear.setValue(1, value);
-        instances[year][0][0].add(instanceYear);
-
-        Instance instanceMonth = new DenseInstance(2);
-        instanceMonth.setDataset(instances[year][month][0]);
-        instanceMonth.setValue(0, timestamp);
-        instanceMonth.setValue(1, value);
-        instances[year][month][0].add(instanceMonth);
-
-        Instance instanceDay = new DenseInstance(2);
-        instanceDay.setDataset(instances[year][month][day]);
-        instanceDay.setValue(0, timestamp);
-        instanceDay.setValue(1, value);
-        instances[year][month][day].add(instanceYear);
+        Instance instance = new DenseInstance(2);
+        instance.setDataset(instances);
+        instance.setValue(0, timestamp);
+        instance.setValue(1, value);
+        instances.add(instance);
 
         //Build classifiers
         try {
-            classifiers[year][0][0].buildClassifier(instances[year][0][0]);
-            classifiers[year][month][0].buildClassifier(instances[year][month][0]);
-            classifiers[year][month][day].buildClassifier(instances[year][month][day]);
+
         } catch (Exception e) {
             System.err.println("Could not build Classifier: " + e.getMessage());
             e.printStackTrace();
@@ -126,10 +86,16 @@ public class Estimator implements OperatorInterface {
         Instant instant = Instant.ofEpochMilli(DateTimeUtils.currentTimeMillis()); //Needs to use this method for testing
         ZoneId zoneId = ZoneId.of( OffsetDateTime.now().getOffset().toString() ); //Assumes local
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+        String tsEODs = DateParser.parseDate(zdt.withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
+        String tsEOMs = DateParser.parseDate(zdt.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
+        String tsEOYs = DateParser.parseDate(zdt.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOD = DateParser.parseDate(zdt.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOM = DateParser.parseDate(zdt.plusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOY = DateParser.parseDate(zdt.plusYears(1).withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
 
+        long tsEODls = DateParser.parseDateMills(tsEODs);
+        long tsEOMls = DateParser.parseDateMills(tsEOMs);
+        long tsEOYls = DateParser.parseDateMills(tsEOYs);
         long tsEODl = DateParser.parseDateMills(tsEOD);
         long tsEOMl = DateParser.parseDateMills(tsEOM);
         long tsEOYl = DateParser.parseDateMills(tsEOY);
@@ -139,9 +105,14 @@ public class Estimator implements OperatorInterface {
         eoy.setValue(0, tsEOYl);
 
         try {
-            double predEOD = classifiers[year][month][day].classifyInstance(eod);
-            double predEOM = classifiers[year][month][0].classifyInstance(eom);
-            double predEOY = classifiers[year][0][0].classifyInstance(eoy);
+            classifier.buildClassifier(filter(tsEODls,tsEODl,instances));
+            double predEOD = classifier.classifyInstance(eod);
+
+            classifier.buildClassifier(filter(tsEOMls, tsEOMl, instances));
+            double predEOM = classifier.classifyInstance(eom);
+
+            classifier.buildClassifier(filter(tsEOYls, tsEOYl, instances));
+            double predEOY = classifier.classifyInstance(eoy);
 
             message.output("DayTimestamp", tsEOD);
             message.output("DayPrediction", predEOD);
@@ -163,14 +134,17 @@ public class Estimator implements OperatorInterface {
         message.addInput("timestamp");
     }
 
-    protected Classifier getClassifier(){
-        Classifier linreg = new LinearRegression();
-        return linreg;
-    }
-
-    protected Instances getInstances(){
-        Instances instances = new Instances("", attributesList, 1);
-        instances.setClassIndex(1);
-        return instances;
+    protected Instances filter(long start, long end, Instances data) throws Exception {
+        RemoveWithValues filter = new RemoveWithValues();
+        filter.setSplitPoint(end);
+        filter.setInvertSelection(true);
+        filter.setAttributeIndex("1");
+        filter.setInputFormat(data);
+        Instances dataEndTruncated = Filter.useFilter(data, filter);
+        RemoveWithValues filter2 = new RemoveWithValues();
+        filter2.setSplitPoint(start);
+        filter2.setAttributeIndex("1");
+        filter2.setInputFormat(dataEndTruncated);
+        return Filter.useFilter(dataEndTruncated, filter2);
     }
 }
