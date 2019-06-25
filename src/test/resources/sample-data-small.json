@@ -12,4 +12,19 @@
 {"value": "12", "timestamp": "1970-01-12T00:00:00"}
 {"value": "13", "timestamp": "1970-01-13T00:00:00"}
 {"value": "14", "timestamp": "1970-01-14T00:00:00"}
-{"value": "15", "timestamp": "1970-01-15T00:00:00","DayPrediction": 16, "MonthPrediction":  32, "YearPrediction":  366}
+{"value": "15", "timestamp": "1970-01-15T00:00:00","DayPrediction": 15, "MonthPrediction":  32, "YearPrediction":  366}
+{"value": "0", "timestamp": "1970-01-16T00:00:00"}
+{"value": "1", "timestamp": "1970-01-16T01:00:00"}
+{"value": "2", "timestamp": "1970-01-16T02:00:00"}
+{"value": "3", "timestamp": "1970-01-16T03:00:00"}
+{"value": "4", "timestamp": "1970-01-16T04:00:00","DayPrediction": 24}
+{"value": "1", "timestamp": "1971-02-01T00:00:00"}
+{"value": "2", "timestamp": "1971-03-01T00:00:00"}
+{"value": "3", "timestamp": "1971-04-01T00:00:00"}
+{"value": "4", "timestamp": "1971-05-01T00:00:00"}
+{"value": "5", "timestamp": "1971-06-01T00:00:00","YearPrediction": 12}
+{"value": "1", "timestamp": "1970-02-01T00:00:00"}
+{"value": "2", "timestamp": "1970-02-02T01:00:00"}
+{"value": "3", "timestamp": "1970-02-03T02:00:00"}
+{"value": "4", "timestamp": "1970-02-04T03:00:00"}
+{"value": "5", "timestamp": "1970-02-05T04:00:00","MonthPrediction": 28}

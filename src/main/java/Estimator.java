@@ -18,7 +18,7 @@
 import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
 import org.joda.time.DateTimeUtils;
-import org.json.JSONObject;
+import weka.classifiers.Classifier;
 import weka.classifiers.functions.LinearRegression;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -29,44 +29,100 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 
 
 public class Estimator implements OperatorInterface {
-    Instances instances;
-    LinearRegression linreg;
-
+    protected Instances[][][] instances;
+    protected Classifier[][][] classifiers;
+    protected ArrayList<Attribute> attributesList;
 
 
     public Estimator(){
-        ArrayList<Attribute> attributesList = new ArrayList<>();
+        attributesList = new ArrayList<>();
         attributesList.add(new Attribute("timestamp"));
         attributesList.add(new Attribute("value"));
-        instances = new Instances("data", attributesList, 1);
-        instances.setClassIndex(1);
-        linreg = new LinearRegression();
-
+        instances = new Instances[3000][][];
+        classifiers = new Classifier[3000][][];
     }
 
     @Override
     public void run(Message message) {
-        Instance instance = new DenseInstance(2);
-        long timestamp = DateParser.parseDateMills(message.getInput("timestamp").getString());
-        instance.setDataset(instances);
-        instance.setValue(0, timestamp);
-        instance.setValue(1, message.getInput("value").getValue());
-        instances.add(instance);
+        //Extract year, month and day from message
+        TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
+        final int year = temporalAccessor.get(ChronoField.YEAR);
+        final int month = temporalAccessor.get(ChronoField.MONTH_OF_YEAR);
+        final int day = temporalAccessor.get(ChronoField.DAY_OF_MONTH);
 
+        //Initialize Arrays for month and day if needed
+        if(instances[year] == null || classifiers[year] == null){
+            instances[year] = new Instances[13][]; //need one for the whole year
+            classifiers[year] = new Classifier[13][];
+        }
+        if(instances[year][month] == null || classifiers[year][month] == null){
+            instances[year][month] = new Instances[32]; //need one for the whole month
+            classifiers[year][month] = new Classifier[32];
+        }
+
+        //Initialize Instances and Linear Regression for year, month and day if needed
+        if(instances[year][0] == null || classifiers[year][0] == null){ //[year][0][0] is the for the whole year
+            instances[year][0] = new Instances[1];
+            classifiers[year][0] = new LinearRegression[1];
+            instances[year][0][0] = getInstances();
+            classifiers[year][0][0] = getClassifier();
+        }
+        if(instances[year][month][0] == null || classifiers[year][month][0] == null){ //[year][month][0] is for the whle month
+            instances[year][month][0] = getInstances();
+            classifiers[year][month][0] = getClassifier();
+        }
+        if(instances[year][month][day] == null || classifiers[year][month][day] == null){ //[year][month][day] is for the day
+            instances[year][month][day] = getInstances();
+            classifiers[year][month][day] = getClassifier();
+        }
+
+        //Prepare values from message
+        final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
+        final double value = message.getInput("value").getValue();
+
+
+        //Insert message values in Instances for year, month and day
+        Instance instanceYear = new DenseInstance(2);
+        instanceYear.setDataset(instances[year][0][0]);
+        instanceYear.setValue(0, timestamp);
+        instanceYear.setValue(1, value);
+        instances[year][0][0].add(instanceYear);
+
+        Instance instanceMonth = new DenseInstance(2);
+        instanceMonth.setDataset(instances[year][month][0]);
+        instanceMonth.setValue(0, timestamp);
+        instanceMonth.setValue(1, value);
+        instances[year][month][0].add(instanceMonth);
+
+        Instance instanceDay = new DenseInstance(2);
+        instanceDay.setDataset(instances[year][month][day]);
+        instanceDay.setValue(0, timestamp);
+        instanceDay.setValue(1, value);
+        instances[year][month][day].add(instanceYear);
+
+        //Build classifiers
         try {
-            linreg.buildClassifier(instances);
+            classifiers[year][0][0].buildClassifier(instances[year][0][0]);
+            classifiers[year][month][0].buildClassifier(instances[year][month][0]);
+            classifiers[year][month][day].buildClassifier(instances[year][month][day]);
         } catch (Exception e) {
             System.err.println("Could not build Classifier: " + e.getMessage());
             e.printStackTrace();
         }
+
+        //prepare instances for predction
         Instance eod = new DenseInstance(1); //End Of Day
         Instance eom = new DenseInstance(1); //End Of Month
         Instance eoy = new DenseInstance(1); //End Of Year
 
+        //Calculate timestamps for prediction
         Instant instant = Instant.ofEpochMilli(DateTimeUtils.currentTimeMillis()); //Needs to use this method for testing
         ZoneId zoneId = ZoneId.of( OffsetDateTime.now().getOffset().toString() ); //Assumes local
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
@@ -83,9 +139,9 @@ public class Estimator implements OperatorInterface {
         eoy.setValue(0, tsEOYl);
 
         try {
-            double predEOD = linreg.classifyInstance(eod);
-            double predEOM = linreg.classifyInstance(eom);
-            double predEOY = linreg.classifyInstance(eoy);
+            double predEOD = classifiers[year][month][day].classifyInstance(eod);
+            double predEOM = classifiers[year][month][0].classifyInstance(eom);
+            double predEOY = classifiers[year][0][0].classifyInstance(eoy);
 
             message.output("DayTimestamp", tsEOD);
             message.output("DayPrediction", predEOD);
@@ -105,5 +161,16 @@ public class Estimator implements OperatorInterface {
     public void config(Message message) {
         message.addInput("value");
         message.addInput("timestamp");
+    }
+
+    protected Classifier getClassifier(){
+        Classifier linreg = new LinearRegression();
+        return linreg;
+    }
+
+    protected Instances getInstances(){
+        Instances instances = new Instances("", attributesList, 1);
+        instances.setClassIndex(1);
+        return instances;
     }
 }

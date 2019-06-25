@@ -22,12 +22,25 @@ public class EstimatorTest {
             m.addInput("MonthPrediction");
             m.addInput("YearPrediction");
             try {
-                Assert.assertEquals(m.getInput("DayPrediction").getValue(), dactual, 0.1);
-                Assert.assertEquals(m.getInput("MonthPrediction").getValue(), mactual, 0.1);
-                Assert.assertEquals(m.getInput("YearPrediction").getValue(), yactual, 0.1);
-                System.out.println("Successfully finished a test instance.");
+                double expected = m.getInput("DayPrediction").getValue();
+                Assert.assertEquals(expected, dactual, expected * 0.05);
+                System.out.println("Successfully predicted for day.");
             }catch (NullPointerException|IndexOutOfBoundsException e){
-                System.out.println("Skipped test instance because no expected values were provided.");
+                System.out.println("Skipped test for day because no expected values were provided.");
+            }
+            try{
+                double expected = m.getInput("MonthPrediction").getValue();
+                Assert.assertEquals(expected, mactual, expected * 0.05);
+                System.out.println("Successfully predicted for month.");
+            }catch (NullPointerException|IndexOutOfBoundsException e){
+                System.out.println("Skipped test for month because no expected values were provided.");
+            }
+            try{
+                double expected = m.getInput("YearPrediction").getValue();
+                Assert.assertEquals(expected, yactual, expected * 0.05);
+                System.out.println("Successfully predicted for year.");
+            }catch (NullPointerException|IndexOutOfBoundsException e){
+                System.out.println("Skipped test for year because no expected values were provided.");
             }
         }
     }
