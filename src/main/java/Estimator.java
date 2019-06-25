@@ -15,11 +15,12 @@
  */
 
 
+import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
 import org.joda.time.DateTimeUtils;
 import weka.classifiers.Classifier;
-import weka.classifiers.functions.LinearRegression;
+import weka.classifiers.functions.*;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -48,6 +49,54 @@ public class Estimator implements OperatorInterface {
         attributesList.add(new Attribute("value"));
         instances =  new Instances("", attributesList, 1);
         instances.setClassIndex(1);
+        String configValue = new Config().getConfigValue("Algorithm", "LinearRegression");
+        switch (configValue){
+            case "LinearRegression":
+                System.out.println("Using LinearRegression");
+                classifier = new LinearRegression();
+                break;
+            case "GaussianProcesses":
+                System.out.println("Using GaussianProcesses");
+                classifier  = new GaussianProcesses();
+                break;
+            case "Logistic":
+                System.out.println("Using Logistic");
+                classifier = new Logistic();
+                break;
+            case "MultilayerPerceptron":
+                System.out.println("Using MultilayerPerceptron");
+                classifier = new MultilayerPerceptron();
+                break;
+            case "SGD":
+                System.out.println("Using SGD");
+                classifier = new SGD();
+                break;
+            case "SimpleLinearRegression":
+                System.out.println("Using SimpleLinearRegression");
+                classifier = new SimpleLinearRegression();
+                break;
+            case "SimpleLogistic":
+                System.out.println("Using SimpleLogistic");
+                classifier = new SimpleLogistic();
+                break;
+            case "SMO":
+                System.out.println("Using SMO");
+                classifier = new SMO();
+                break;
+            case "SMOreg":
+                System.out.println("Using SMOreg");
+                classifier = new SMOreg();
+                break;
+            case "VotedPerceptron":
+                System.out.println("Using VotedPerceptron");
+                classifier = new VotedPerceptron();
+                break;
+            default:
+                System.out.println("Your specified algorithm is not implemented, falling back to Linear Regression!");
+                new LinearRegression();
+                break;
+        }
+
         classifier = new LinearRegression();
     }
 

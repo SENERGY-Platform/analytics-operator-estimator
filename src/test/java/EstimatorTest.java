@@ -1,13 +1,19 @@
 import org.infai.seits.sepl.operators.Message;
 import org.joda.time.DateTimeUtils;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.util.List;
 
 public class EstimatorTest {
 
-    @Test
+    @Rule
+    public final EnvironmentVariables environmentVariables
+            = new EnvironmentVariables();
+
+
     public void run() throws Exception{
         Estimator est = new Estimator();
         List<Message> messages = TestMessageProvider.getTestMesssagesSet();
@@ -43,5 +49,66 @@ public class EstimatorTest {
                 System.out.println("Skipped test for year because no expected values were provided.");
             }
         }
+    }
+
+    @Test
+    public void LinearRegression() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"LinearRegression\"}}");
+        run();
+    }
+    @Test
+    public void GaussianProcesses() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"GaussianProcesses\"}}");
+        run();
+    }
+    @Test
+    public void Logistic() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"Logistic\"}}");
+        run();
+    }
+    @Test
+    public void MultilayerPerceptron() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"MultilayerPerceptron\"}}");
+        run();
+    }
+    @Test
+    public void SGD() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SGD\"}}");
+        run();
+    }
+    @Test
+    public void SimpleLinearRegression() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SimpleLinearRegression\"}}");
+        run();
+    }
+    @Test
+    public void SimpleLogistic() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SimpleLogistic\"}}");
+        run();
+    }
+    @Test
+    public void SMO() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SMO\"}}");
+        run();
+    }
+    @Test
+    public void SMOreg() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SMOreg\"}}");
+        run();
+    }
+    @Test
+    public void VotedPerceptron() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"VotedPerceptron\"}}");
+        run();
+    }
+    @Test
+    public void UnknownAlgorithm() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"UnknownAlgorithm\"}}");
+        run();
+    }
+    @Test
+    public void NoAlgorithm() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{}}");
+        run();
     }
 }
