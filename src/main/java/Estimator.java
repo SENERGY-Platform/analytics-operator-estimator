@@ -20,11 +20,11 @@ import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
 import org.joda.time.DateTimeUtils;
 import weka.classifiers.Classifier;
-import weka.classifiers.functions.*;
-import weka.core.Attribute;
-import weka.core.DenseInstance;
-import weka.core.Instance;
-import weka.core.Instances;
+import weka.classifiers.functions.GaussianProcesses;
+import weka.classifiers.functions.LinearRegression;
+import weka.classifiers.functions.SMOreg;
+import weka.classifiers.functions.SimpleLinearRegression;
+import weka.core.*;
 import weka.filters.Filter;
 import weka.filters.unsupervised.instance.RemoveWithValues;
 
@@ -58,46 +58,21 @@ public class Estimator implements OperatorInterface {
             case "GaussianProcesses":
                 System.out.println("Using GaussianProcesses");
                 classifier  = new GaussianProcesses();
-                break;
-            case "Logistic":
-                System.out.println("Using Logistic");
-                classifier = new Logistic();
-                break;
-            case "MultilayerPerceptron":
-                System.out.println("Using MultilayerPerceptron");
-                classifier = new MultilayerPerceptron();
-                break;
-            case "SGD":
-                System.out.println("Using SGD");
-                classifier = new SGD();
+                ((GaussianProcesses) classifier).setFilterType(new SelectedTag(GaussianProcesses.FILTER_STANDARDIZE, GaussianProcesses.TAGS_FILTER));
                 break;
             case "SimpleLinearRegression":
                 System.out.println("Using SimpleLinearRegression");
                 classifier = new SimpleLinearRegression();
                 break;
-            case "SimpleLogistic":
-                System.out.println("Using SimpleLogistic");
-                classifier = new SimpleLogistic();
-                break;
-            case "SMO":
-                System.out.println("Using SMO");
-                classifier = new SMO();
-                break;
             case "SMOreg":
                 System.out.println("Using SMOreg");
                 classifier = new SMOreg();
                 break;
-            case "VotedPerceptron":
-                System.out.println("Using VotedPerceptron");
-                classifier = new VotedPerceptron();
-                break;
             default:
                 System.out.println("Your specified algorithm is not implemented, falling back to Linear Regression!");
-                new LinearRegression();
+                classifier = new LinearRegression();
                 break;
         }
-
-        classifier = new LinearRegression();
     }
 
     @Override
@@ -149,26 +124,32 @@ public class Estimator implements OperatorInterface {
             //Train classifiers and calculate predictions
             classifier.buildClassifier(filter(tsEODls,tsEODl,instances));
             double predEOD = classifier.classifyInstance(eod);
-
-            classifier.buildClassifier(filter(tsEOMls, tsEOMl, instances));
-            double predEOM = classifier.classifyInstance(eom);
-
-            classifier.buildClassifier(filter(tsEOYls, tsEOYl, instances));
-            double predEOY = classifier.classifyInstance(eoy);
-
             //Submit results
             message.output("DayTimestamp", tsEOD);
             message.output("DayPrediction", predEOD);
+        } catch (Exception e) { //Building, filtering and predicting may throw exception
+            System.err.println("Could not calculate prediction: " + e.getMessage());
+        }
+        try {
+            classifier.buildClassifier(filter(tsEOMls, tsEOMl, instances));
+            double predEOM = classifier.classifyInstance(eom);
+            //Submit results
             message.output("MonthTimestamp", tsEOM);
             message.output("MonthPrediction", predEOM);
-            message.output("YearTimestamp", tsEOY);
-            message.output("YearPrediction", predEOY);
 
         } catch (Exception e) { //Building, filtering and predicting may throw exception
             System.err.println("Could not calculate prediction: " + e.getMessage());
-            e.printStackTrace();
         }
-
+        try {
+            //Train classifiers and calculate predictions
+            classifier.buildClassifier(filter(tsEOYls, tsEOYl, instances));
+            double predEOY = classifier.classifyInstance(eoy);
+            //Submit results
+            message.output("YearTimestamp", tsEOY);
+            message.output("YearPrediction", predEOY);
+        } catch (Exception e) { //Building, filtering and predicting may throw exception
+            System.err.println("Could not calculate prediction: " + e.getMessage());
+        }
     }
 
     @Override
@@ -188,6 +169,7 @@ public class Estimator implements OperatorInterface {
         filter2.setSplitPoint(start);
         filter2.setAttributeIndex("1");
         filter2.setInputFormat(dataEndTruncated);
-        return Filter.useFilter(dataEndTruncated, filter2);
+        Instances returnInstances = Filter.useFilter(dataEndTruncated, filter2);
+        return returnInstances;
     }
 }
