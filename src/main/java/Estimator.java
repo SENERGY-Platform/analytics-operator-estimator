@@ -26,6 +26,7 @@ import weka.classifiers.functions.SMOreg;
 import weka.classifiers.functions.SimpleLinearRegression;
 import weka.core.*;
 import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.AddExpression;
 import weka.filters.unsupervised.instance.RemoveWithValues;
 
 import java.time.Instant;
@@ -169,7 +170,14 @@ public class Estimator implements OperatorInterface {
         filter2.setSplitPoint(start);
         filter2.setAttributeIndex("1");
         filter2.setInputFormat(dataEndTruncated);
-        Instances returnInstances = Filter.useFilter(dataEndTruncated, filter2);
+        Instances filteredInstances = Filter.useFilter(dataEndTruncated, filter2);
+        filteredInstances.sort(0);
+        double offset = filteredInstances.get(0).value(1);
+        AddExpression offsetter = new AddExpression();
+        offsetter.setExpression("A2-" + offset);
+        offsetter.setInputFormat(filteredInstances);
+        Instances returnInstances = Filter.useFilter(filteredInstances, offsetter);
+        returnInstances.setClassIndex(2);
         return returnInstances;
     }
 }
