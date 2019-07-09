@@ -27,6 +27,7 @@ import weka.classifiers.functions.SimpleLinearRegression;
 import weka.core.*;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.AddExpression;
+import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.unsupervised.instance.RemoveWithValues;
 
 import java.time.Instant;
@@ -123,7 +124,7 @@ public class Estimator implements OperatorInterface {
 
         try {
             //Train classifiers and calculate predictions
-            classifier.buildClassifier(filter(tsEODls,tsEODl,instances));
+            classifier.buildClassifier(makeColumnOffset(tsEODls,tsEODl,instances));
             double predEOD = classifier.classifyInstance(eod);
             //Submit results
             message.output("DayTimestamp", tsEOD);
@@ -132,7 +133,7 @@ public class Estimator implements OperatorInterface {
             System.err.println("Could not calculate prediction: " + e.getMessage());
         }
         try {
-            classifier.buildClassifier(filter(tsEOMls, tsEOMl, instances));
+            classifier.buildClassifier(makeColumnOffset(tsEOMls, tsEOMl, instances));
             double predEOM = classifier.classifyInstance(eom);
             //Submit results
             message.output("MonthTimestamp", tsEOM);
@@ -143,7 +144,7 @@ public class Estimator implements OperatorInterface {
         }
         try {
             //Train classifiers and calculate predictions
-            classifier.buildClassifier(filter(tsEOYls, tsEOYl, instances));
+            classifier.buildClassifier(makeColumnOffset(tsEOYls, tsEOYl, instances));
             double predEOY = classifier.classifyInstance(eoy);
             //Submit results
             message.output("YearTimestamp", tsEOY);
@@ -171,13 +172,22 @@ public class Estimator implements OperatorInterface {
         filter2.setAttributeIndex("1");
         filter2.setInputFormat(dataEndTruncated);
         Instances filteredInstances = Filter.useFilter(dataEndTruncated, filter2);
+        return filteredInstances;
+    }
+
+    protected Instances makeColumnOffset(long start, long end, Instances data) throws Exception {
+        Instances filteredInstances = filter(start, end, data);
         filteredInstances.sort(0);
         double offset = filteredInstances.get(0).value(1);
         AddExpression offsetter = new AddExpression();
         offsetter.setExpression("A2-" + offset);
-        offsetter.setInputFormat(filteredInstances);
-        Instances returnInstances = Filter.useFilter(filteredInstances, offsetter);
-        returnInstances.setClassIndex(2);
+        offsetter.setInputFormat(data);
+        Instances returnInstances = Filter.useFilter(data, offsetter);
+        Remove remover = new Remove();
+        remover.setAttributeIndices("2");
+        remover.setInputFormat(returnInstances);
+        returnInstances = Filter.useFilter(returnInstances, remover);
+        returnInstances.setClassIndex(1);
         return returnInstances;
     }
 }

@@ -83,7 +83,7 @@ public class EstimatorTest {
     @Test
     public void GaussianProcesses() throws Exception{
         environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"GaussianProcesses\"}}");
-        run(0.2);
+        run(0.6);
     }
     @Test
     public void SimpleLinearRegression() throws Exception{
