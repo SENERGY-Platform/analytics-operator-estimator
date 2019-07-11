@@ -72,7 +72,7 @@
         <dependency>
             <groupId>com.github.SENERGY-Platform</groupId>
             <artifactId>util-dateparser</artifactId>
-            <version>0.1.1</version>
+            <version>4cddbcc10dca8546d52463091e44830e80d8f1be</version>
         </dependency>
         <dependency>
             <groupId>nz.ac.waikato.cms.weka</groupId>
