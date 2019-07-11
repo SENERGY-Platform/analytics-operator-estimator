@@ -31,7 +31,6 @@ import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.unsupervised.instance.RemoveWithValues;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -43,6 +42,7 @@ public class Estimator implements OperatorInterface {
     protected Instances instances;
     protected Classifier classifier;
     protected ArrayList<Attribute> attributesList;
+    protected String timezone;
 
 
     public Estimator(){
@@ -51,7 +51,9 @@ public class Estimator implements OperatorInterface {
         attributesList.add(new Attribute("value"));
         instances =  new Instances("", attributesList, 1);
         instances.setClassIndex(1);
-        String configValue = new Config().getConfigValue("Algorithm", "LinearRegression");
+        Config config = new Config();
+        String configValue = config.getConfigValue("Algorithm", "LinearRegression");
+        timezone = config.getConfigValue("Timezone", "+02");
         switch (configValue){
             case "LinearRegression":
                 System.out.println("Using LinearRegression");
@@ -95,7 +97,7 @@ public class Estimator implements OperatorInterface {
 
         //Calculate timestamps for prediction
         Instant instant = Instant.ofEpochMilli(DateTimeUtils.currentTimeMillis()); //Needs to use this method for testing
-        ZoneId zoneId = ZoneId.of( OffsetDateTime.now().getOffset().toString() ); //Assumes local
+        ZoneId zoneId = ZoneId.of(timezone); //As configured
         ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
 
         //Create Strings representing start and end of day, month and year
