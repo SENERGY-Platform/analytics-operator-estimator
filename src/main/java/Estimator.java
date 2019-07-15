@@ -42,7 +42,7 @@ public class Estimator implements OperatorInterface {
     protected Instances instances;
     protected Classifier classifier;
     protected ArrayList<Attribute> attributesList;
-    protected String timezone;
+    protected ZoneId timezone;
 
 
     public Estimator(){
@@ -53,7 +53,8 @@ public class Estimator implements OperatorInterface {
         instances.setClassIndex(1);
         Config config = new Config();
         String configValue = config.getConfigValue("Algorithm", "LinearRegression");
-        timezone = config.getConfigValue("Timezone", "+02");
+        String configTimezone = config.getConfigValue("Timezone", "+02");
+        timezone = ZoneId.of(configTimezone); //As configured
         switch (configValue){
             case "LinearRegression":
                 System.out.println("Using LinearRegression");
@@ -97,8 +98,8 @@ public class Estimator implements OperatorInterface {
 
         //Calculate timestamps for prediction
         Instant instant = Instant.ofEpochMilli(DateTimeUtils.currentTimeMillis()); //Needs to use this method for testing
-        ZoneId zoneId = ZoneId.of(timezone); //As configured
-        ZonedDateTime zdt = ZonedDateTime.ofInstant( instant , zoneId );
+
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant , timezone);
 
         //Create Strings representing start and end of day, month and year
         String tsEODs = DateParser.parseDate(zdt.withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
