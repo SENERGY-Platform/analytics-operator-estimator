@@ -86,7 +86,6 @@ public class Estimator implements OperatorInterface {
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
         final double value = message.getInput("value").getValue();
 
-
         //Insert message values in Instances
         Instance instance = new DenseInstance(2);
         instance.setDataset(instances);
@@ -95,9 +94,10 @@ public class Estimator implements OperatorInterface {
         instances.add(instance);
 
         //Calculate timestamps for prediction
-        Instant instant = Instant.ofEpochMilli(DateTimeUtils.currentTimeMillis()); //Needs to use this method for testing
+        long currentMillis = DateTimeUtils.currentTimeMillis();
+        Instant instant = Instant.ofEpochMilli(currentMillis); //Needs to use this method for testing
 
-        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant , timezone);
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, timezone);
 
         //Create Strings representing start and end of day, month and year
         String tsSOD = DateParser.parseDate(zdt.withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
@@ -129,42 +129,55 @@ public class Estimator implements OperatorInterface {
         som.setValue(0, tsSOMl);
         soy.setValue(0, tsSOYl);
 
-        try {
-            //Train classifiers and calculate predictions
-            Instances filteredInstances = filter(tsSODl, tsEODl, this.instances);
-            classifier.buildClassifier(filteredInstances);
-            double predEOD = classifier.classifyInstance(eod);
-            double offset = classifier.classifyInstance(sod);
-            //Submit results
-            message.output("DayTimestamp", tsEOD);
-            message.output("DayPrediction", predEOD - offset);
-        } catch (Exception e) { //Building, filtering and predicting may throw exception
-            System.err.println("Could not calculate prediction: " + e.getMessage());
-        }
-        try {
-            //Train classifiers and calculate predictions
-            Instances filteredInstances = filter(tsSOMl, tsEOMl, instances);
-            classifier.buildClassifier(filteredInstances);
-            double predEOM = classifier.classifyInstance(eom);
-            double offset = classifier.classifyInstance(som);
-            //Submit results
-            message.output("MonthTimestamp", tsEOM);
-            message.output("MonthPrediction", predEOM - offset);
+        if (timestamp > tsSODl) {
+            try {
+                //Train classifiers and calculate predictions
+                Instances filteredInstances = filter(tsSODl, tsEODl, this.instances);
+                classifier.buildClassifier(filteredInstances);
+                double predEOD = classifier.classifyInstance(eod);
+                double offset = classifier.classifyInstance(sod);
+                //Submit results
+                message.output("DayTimestamp", tsEOD);
+                message.output("DayPrediction", predEOD - offset);
 
-        } catch (Exception e) { //Building, filtering and predicting may throw exception
-            System.err.println("Could not calculate prediction: " + e.getMessage());
+            }catch(Exception e){ //Building, filtering and predicting may throw exception
+                System.err.println("Could not calculate prediction: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Skipping DAY prediction, values too old.");
         }
-        try {
-            //Train classifiers and calculate predictions
-            Instances filteredInstances = filter(tsSOYl, tsEOYl, instances);
-            classifier.buildClassifier(filteredInstances);
-            double predEOY = classifier.classifyInstance(eoy);
-            double offset = classifier.classifyInstance(soy);
-            //Submit results
-            message.output("YearTimestamp", tsEOY);
-            message.output("YearPrediction", predEOY - offset);
-        } catch (Exception e) { //Building, filtering and predicting may throw exception
-            System.err.println("Could not calculate prediction: " + e.getMessage());
+        if (timestamp > tsSOMl) {
+            try {
+                //Train classifiers and calculate predictions
+                Instances filteredInstances = filter(tsSOMl, tsEOMl, instances);
+                classifier.buildClassifier(filteredInstances);
+                double predEOM = classifier.classifyInstance(eom);
+                double offset = classifier.classifyInstance(som);
+                //Submit results
+                message.output("MonthTimestamp", tsEOM);
+                message.output("MonthPrediction", predEOM - offset);
+
+            } catch (Exception e) { //Building, filtering and predicting may throw exception
+                System.err.println("Could not calculate prediction: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Skipping MONTH prediction, values too old.");
+        }
+        if (timestamp > tsSOYl) {
+            try {
+                //Train classifiers and calculate predictions
+                Instances filteredInstances = filter(tsSOYl, tsEOYl, instances);
+                classifier.buildClassifier(filteredInstances);
+                double predEOY = classifier.classifyInstance(eoy);
+                double offset = classifier.classifyInstance(soy);
+                //Submit results
+                message.output("YearTimestamp", tsEOY);
+                message.output("YearPrediction", predEOY - offset);
+            } catch (Exception e) { //Building, filtering and predicting may throw exception
+                System.err.println("Could not calculate prediction: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Skipping YEAR prediction, values too old.");
         }
     }
 
