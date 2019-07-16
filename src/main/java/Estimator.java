@@ -176,6 +176,7 @@ public class Estimator implements OperatorInterface {
             try {
                 //Train classifiers and calculate predictions
                 Instances filteredInstances = filter(tsSOYl, tsEOYl, instances);
+                instances = filteredInstances; //Clears instances from previous years
                 classifier.buildClassifier(filteredInstances);
                 double predEOY = classifier.classifyInstance(eoy);
                 double offset = classifier.classifyInstance(soy);
