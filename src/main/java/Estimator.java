@@ -86,13 +86,6 @@ public class Estimator implements OperatorInterface {
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
         final double value = message.getInput("value").getValue();
 
-        //Insert message values in Instances
-        Instance instance = new DenseInstance(2);
-        instance.setDataset(instances);
-        instance.setValue(0, timestamp);
-        instance.setValue(1, value);
-        instances.add(instance);
-
         //Calculate timestamps for prediction
         long currentMillis = DateTimeUtils.currentTimeMillis(); //Needs to use this method for testing
         Instant instant = Instant.ofEpochMilli(currentMillis);
@@ -114,6 +107,22 @@ public class Estimator implements OperatorInterface {
         long tsEODl = DateParser.parseDateMills(tsEOD);
         long tsEOMl = DateParser.parseDateMills(tsEOM);
         long tsEOYl = DateParser.parseDateMills(tsEOY);
+
+        //Insert message values in Instances
+        Instance instance = new DenseInstance(2);
+        instance.setDataset(instances);
+        instance.setValue(0, timestamp);
+        instance.setValue(1, value);
+        instances.add(instance);
+
+        if(timestamp < tsSOYl){
+            /*
+                value is not from current year
+                don't calculate anything and don't add to data
+            */
+            System.out.println("Skipping value: too old, from: " + temporalAccessor.toString());
+            return;
+        }
 
         //prepare instances for prediction
         Instance eod = new DenseInstance(1); //End Of Day
