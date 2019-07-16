@@ -50,7 +50,7 @@ public class Estimator implements OperatorInterface {
         instances =  new Instances("", attributesList, 1);
         instances.setClassIndex(1);
         Config config = new Config();
-        String configValue = config.getConfigValue("Algorithm", "LinearRegression");
+        String configValue = config.getConfigValue("Algorithm", "");
         String configTimezone = config.getConfigValue("Timezone", "+02");
         timezone = ZoneId.of(configTimezone); //As configured
         switch (configValue){
