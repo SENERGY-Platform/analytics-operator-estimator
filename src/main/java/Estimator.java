@@ -26,8 +26,6 @@ import weka.classifiers.functions.SMOreg;
 import weka.classifiers.functions.SimpleLinearRegression;
 import weka.core.*;
 import weka.filters.Filter;
-import weka.filters.unsupervised.attribute.AddExpression;
-import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.unsupervised.instance.RemoveWithValues;
 
 import java.time.Instant;
@@ -102,17 +100,17 @@ public class Estimator implements OperatorInterface {
         ZonedDateTime zdt = ZonedDateTime.ofInstant(instant , timezone);
 
         //Create Strings representing start and end of day, month and year
-        String tsEODs = DateParser.parseDate(zdt.withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
-        String tsEOMs = DateParser.parseDate(zdt.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
-        String tsEOYs = DateParser.parseDate(zdt.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
+        String tsSOD = DateParser.parseDate(zdt.withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
+        String tsSOM = DateParser.parseDate(zdt.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
+        String tsSOY = DateParser.parseDate(zdt.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).toString());
         String tsEOD = DateParser.parseDate(zdt.plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0).minusSeconds(1).toString());
         String tsEOM = DateParser.parseDate(zdt.plusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0).minusSeconds(1).toString());
         String tsEOY = DateParser.parseDate(zdt.plusYears(1).withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).minusSeconds(1).toString());
 
         //Convert created Strings into long timestamps
-        long tsEODls = DateParser.parseDateMills(tsEODs);
-        long tsEOMls = DateParser.parseDateMills(tsEOMs);
-        long tsEOYls = DateParser.parseDateMills(tsEOYs);
+        long tsSODl = DateParser.parseDateMills(tsSOD);
+        long tsSOMl = DateParser.parseDateMills(tsSOM);
+        long tsSOYl = DateParser.parseDateMills(tsSOY);
         long tsEODl = DateParser.parseDateMills(tsEOD);
         long tsEOMl = DateParser.parseDateMills(tsEOM);
         long tsEOYl = DateParser.parseDateMills(tsEOY);
@@ -121,37 +119,50 @@ public class Estimator implements OperatorInterface {
         Instance eod = new DenseInstance(1); //End Of Day
         Instance eom = new DenseInstance(1); //End Of Month
         Instance eoy = new DenseInstance(1); //End Of Year
+        Instance sod = new DenseInstance(1); //Start Of Day
+        Instance som = new DenseInstance(1); //Start Of Month
+        Instance soy = new DenseInstance(1); //Start Of Year
         eod.setValue(0, tsEODl);
         eom.setValue(0, tsEOMl);
         eoy.setValue(0, tsEOYl);
+        sod.setValue(0, tsSODl);
+        som.setValue(0, tsSOMl);
+        soy.setValue(0, tsSOYl);
 
         try {
             //Train classifiers and calculate predictions
-            classifier.buildClassifier(makeColumnOffset(tsEODls,tsEODl,instances));
+            Instances filteredInstances = filter(tsSODl, tsEODl, this.instances);
+            classifier.buildClassifier(filteredInstances);
             double predEOD = classifier.classifyInstance(eod);
+            double offset = classifier.classifyInstance(sod);
             //Submit results
             message.output("DayTimestamp", tsEOD);
-            message.output("DayPrediction", predEOD);
+            message.output("DayPrediction", predEOD - offset);
         } catch (Exception e) { //Building, filtering and predicting may throw exception
             System.err.println("Could not calculate prediction: " + e.getMessage());
         }
         try {
-            classifier.buildClassifier(makeColumnOffset(tsEOMls, tsEOMl, instances));
+            //Train classifiers and calculate predictions
+            Instances filteredInstances = filter(tsSOMl, tsEOMl, instances);
+            classifier.buildClassifier(filteredInstances);
             double predEOM = classifier.classifyInstance(eom);
+            double offset = classifier.classifyInstance(som);
             //Submit results
             message.output("MonthTimestamp", tsEOM);
-            message.output("MonthPrediction", predEOM);
+            message.output("MonthPrediction", predEOM - offset);
 
         } catch (Exception e) { //Building, filtering and predicting may throw exception
             System.err.println("Could not calculate prediction: " + e.getMessage());
         }
         try {
             //Train classifiers and calculate predictions
-            classifier.buildClassifier(makeColumnOffset(tsEOYls, tsEOYl, instances));
+            Instances filteredInstances = filter(tsSOYl, tsEOYl, instances);
+            classifier.buildClassifier(filteredInstances);
             double predEOY = classifier.classifyInstance(eoy);
+            double offset = classifier.classifyInstance(soy);
             //Submit results
             message.output("YearTimestamp", tsEOY);
-            message.output("YearPrediction", predEOY);
+            message.output("YearPrediction", predEOY - offset);
         } catch (Exception e) { //Building, filtering and predicting may throw exception
             System.err.println("Could not calculate prediction: " + e.getMessage());
         }
@@ -176,21 +187,5 @@ public class Estimator implements OperatorInterface {
         filter2.setInputFormat(dataEndTruncated);
         Instances filteredInstances = Filter.useFilter(dataEndTruncated, filter2);
         return filteredInstances;
-    }
-
-    protected Instances makeColumnOffset(long start, long end, Instances data) throws Exception {
-        Instances filteredInstances = filter(start, end, data);
-        filteredInstances.sort(0);
-        double offset = filteredInstances.get(0).value(1);
-        AddExpression offsetter = new AddExpression();
-        offsetter.setExpression("A2-" + offset);
-        offsetter.setInputFormat(data);
-        Instances returnInstances = Filter.useFilter(data, offsetter);
-        Remove remover = new Remove();
-        remover.setAttributeIndices("2");
-        remover.setInputFormat(returnInstances);
-        returnInstances = Filter.useFilter(returnInstances, remover);
-        returnInstances.setClassIndex(1);
-        return returnInstances;
     }
 }
