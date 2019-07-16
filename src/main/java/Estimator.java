@@ -94,8 +94,8 @@ public class Estimator implements OperatorInterface {
         instances.add(instance);
 
         //Calculate timestamps for prediction
-        long currentMillis = DateTimeUtils.currentTimeMillis();
-        Instant instant = Instant.ofEpochMilli(currentMillis); //Needs to use this method for testing
+        long currentMillis = DateTimeUtils.currentTimeMillis(); //Needs to use this method for testing
+        Instant instant = Instant.ofEpochMilli(currentMillis);
 
         ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, timezone);
 
@@ -129,7 +129,7 @@ public class Estimator implements OperatorInterface {
         som.setValue(0, tsSOMl);
         soy.setValue(0, tsSOYl);
 
-        if (timestamp > tsSODl) {
+        if (timestamp >= tsSODl) {
             try {
                 //Train classifiers and calculate predictions
                 Instances filteredInstances = filter(tsSODl, tsEODl, this.instances);
@@ -146,7 +146,7 @@ public class Estimator implements OperatorInterface {
         } else {
             System.out.println("Skipping DAY prediction, values too old.");
         }
-        if (timestamp > tsSOMl) {
+        if (timestamp >= tsSOMl) {
             try {
                 //Train classifiers and calculate predictions
                 Instances filteredInstances = filter(tsSOMl, tsEOMl, instances);
@@ -163,7 +163,7 @@ public class Estimator implements OperatorInterface {
         } else {
             System.out.println("Skipping MONTH prediction, values too old.");
         }
-        if (timestamp > tsSOYl) {
+        if (timestamp >= tsSOYl) {
             try {
                 //Train classifiers and calculate predictions
                 Instances filteredInstances = filter(tsSOYl, tsEOYl, instances);
