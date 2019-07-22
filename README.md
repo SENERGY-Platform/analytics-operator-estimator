@@ -13,11 +13,11 @@ Since the operator is mainly written to predict consumption data it will provide
 ## Outputs
 
 * DayTimestamp (string): String representation of the timestamp of the end of the current day
-* DayPrediction (string): Prediction of the value at DayTimestamp
+* DayPrediction (float): Prediction of the value at DayTimestamp
 * MonthTimestamp (string): String representation of the timestamp of the end of the current month
-* MonthPrediction (string): Prediction of the value at MonthTimestamp
+* MonthPrediction (float): Prediction of the value at MonthTimestamp
 * YearTimestamp (string): String representation of the timestamp of the end of the current year
-* YearPrediction (string): Prediction of the value at YearTimestamp
+* YearPrediction (float): Prediction of the value at YearTimestamp
 
 ## Configs
  * Algorithm (string): Can be either one of
