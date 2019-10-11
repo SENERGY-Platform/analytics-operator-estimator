@@ -68,7 +68,7 @@ public class Estimator implements OperatorInterface {
         final double value = message.getInput("value").getValue();
 
         //Calculate timestamp for prediction
-        double tsEOY = ZonedDateTime.now().withDayOfYear(0).withHour(0).withMinute(0).withSecond(0).withNano(0).plusYears(1).minusSeconds(1).toInstant().toEpochMilli();
+        double tsEOY = ZonedDateTime.now().withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).plusYears(1).minusSeconds(1).toInstant().toEpochMilli();
 
         //Insert message values in Instances and save back to the map
         Instance instance = new DenseInstance(2);
