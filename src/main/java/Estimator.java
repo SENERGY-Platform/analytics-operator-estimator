@@ -15,7 +15,6 @@
  */
 
 
-import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
 import weka.classifiers.Classifier;
@@ -25,8 +24,8 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
+import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -38,7 +37,6 @@ import java.util.Map;
 public class Estimator implements OperatorInterface {
     protected Classifier classifier;
     protected ArrayList<Attribute> attributesList;
-    protected ZoneId timezone;
     protected Map<String, Instances> map;
 
 
@@ -47,9 +45,6 @@ public class Estimator implements OperatorInterface {
         attributesList.add(new Attribute("timestamp"));
         attributesList.add(new Attribute("value"));
         map = new HashMap<>();
-        Config config = new Config();
-        String configTimezone = config.getConfigValue("Timezone", "+02");
-        timezone = ZoneId.of(configTimezone); //As configured
         System.out.println("Using SMOreg");
         classifier = new SMOreg();
     }
@@ -91,7 +86,7 @@ public class Estimator implements OperatorInterface {
             classifier.buildClassifier(instances);
             double predEOY = classifier.classifyInstance(eoy);
             //Submit results
-            message.output("PredictionTimestamp", tsEOY);
+            message.output("PredictionTimestamp", new Timestamp((long) tsEOY).toString());
             message.output("Prediction", predEOY);
         } catch (Exception e) { //Building, filtering and predicting may throw exception
             System.err.println("Could not calculate prediction: " + e.getMessage());
