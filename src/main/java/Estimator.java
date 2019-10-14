@@ -15,16 +15,13 @@
  */
 
 
+import com.yahoo.labs.samoa.instances.Attribute;
+import com.yahoo.labs.samoa.instances.DenseInstance;
+import com.yahoo.labs.samoa.instances.Instance;
+import com.yahoo.labs.samoa.instances.Prediction;
 import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
-import weka.classifiers.functions.SMOreg;
-import weka.classifiers.functions.supportVector.Kernel;
-import weka.classifiers.functions.supportVector.PolyKernel;
-import weka.core.Attribute;
-import weka.core.DenseInstance;
-import weka.core.Instance;
-import weka.core.Instances;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -40,13 +37,10 @@ import java.util.Map;
 
 
 public class Estimator implements OperatorInterface {
-    protected SMOreg classifier;
     protected ArrayList<Attribute> attributesList;
-    protected Map<String, Instances> map;
+    protected Map<String, EstimatorContainer> map;
     protected boolean log_console, log_file;
     protected BufferedWriter bw;
-    protected long counter;
-
 
     public Estimator(){
         attributesList = new ArrayList<>();
@@ -59,41 +53,27 @@ public class Estimator implements OperatorInterface {
             try {
                 String filename = config.getConfigValue("log_filename", "./log.csv");
                 bw = new BufferedWriter(new FileWriter(filename));
-                bw.write("MessageNo,TimeInMs\n");
+                bw.write("Device,MessageNo,TimeInMs\n");
                 bw.flush();
             } catch (IOException e) {
                 System.err.println("Problem when creating/opening file. Logs will not be written!");
                 e.printStackTrace();
             }
         }
-            map = new HashMap<>();
-        System.out.println("Using SMOreg");
-        classifier = new SMOreg();
-        Kernel kernel = new PolyKernel();
-        try {
-            kernel.setOptions(new String[]{"-C", "0"});
-        } catch (Exception e) {
-            System.err.println("Could not set kernel cache size to 0 (cache all)");
-            e.printStackTrace();
-        }
-        kernel.setChecksTurnedOff(true);
-        classifier.setKernel(kernel);
-        counter = 0;
+        map = new HashMap<>();
     }
 
     @Override
     public void run(Message message) {
         long startTime = System.currentTimeMillis();
-        counter++;
 
         String METER_ID = message.getInput("device_id").getString();
 
-        Instances instances;
+        EstimatorContainer container;
         if (map.containsKey(METER_ID)) {
-            instances = map.get(METER_ID);
+            container = map.get(METER_ID);
         } else {
-            instances =  new Instances("", attributesList, 1);
-            instances.setClassIndex(1);
+            container = new EstimatorContainer(METER_ID, attributesList);
         }
 
         TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
@@ -103,38 +83,37 @@ public class Estimator implements OperatorInterface {
         final double value = message.getInput("value").getValue();
 
         //Calculate timestamp for prediction
-        double tsEOY = ZonedDateTime.now().withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).plusYears(1).minusSeconds(1).toInstant().toEpochMilli();
+        double tsEOY = ZonedDateTime.from(temporalAccessor).withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0).plusYears(1).minusSeconds(1).toInstant().toEpochMilli();
 
         //Insert message values in Instances and save back to the map
         Instance instance = new DenseInstance(2);
-        instance.setDataset(instances);
+        instance.setDataset(container.header);
         instance.setValue(0, timestamp);
-        instance.setValue(1, value);
-        instances.add(instance);
-        map.put(METER_ID, instances);
+        instance.setClassValue(value);
+
 
         //prepare instances for prediction
         Instance eoy = new DenseInstance(1); //End Of Year
         eoy.setValue(0, tsEOY);
+        eoy.setDataset(container.header);
 
-        try {
-            classifier.buildClassifier(instances);
-            double predEOY = classifier.classifyInstance(eoy);
-            //Submit results
-            message.output("PredictionTimestamp", new Timestamp((long) tsEOY).toString());
-            message.output("Prediction", predEOY);
-        } catch (Exception e) { //Building, filtering and predicting may throw exception
-            System.err.println("Could not calculate prediction: " + e.getMessage());
-        }
+        container.classifier.trainOnInstance(instance);
+        container.numTrained++;
+        map.put(METER_ID, container);
+        Prediction p = container.classifier.getPredictionForInstance(eoy);
 
+        message.output("PredictionTimestamp", new Timestamp((long) tsEOY).toString());
+        message.output("Prediction", p.getVotes()[0]);
+
+        // LOGGING
         long endTime = System.currentTimeMillis();
         long diff = endTime - startTime;
         if(log_console) {
-            System.out.println("Message " + counter + " took " + diff + " millis");
+            System.out.println("DEVICE: " + METER_ID + "\t#Msg: " + container.numTrained + "\tTIME: " + diff);
         }
         if(log_file && bw != null) {
             try {
-                bw.write("" + counter + "," + diff + "\n");
+                bw.write(METER_ID + "," + container.numTrained + "," + diff + "\n");
                 bw.flush();
             } catch (IOException e) {
                 System.err.println("Could not log!");

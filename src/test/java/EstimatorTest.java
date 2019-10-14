@@ -15,11 +15,11 @@ public class EstimatorTest {
     public void run(boolean[][] skipTests, double acurracy) throws Exception{
         Estimator est = new Estimator();
         List<Message> messages = TestMessageProvider.getTestMesssagesSet();
-        long startMill, endMill;
         for (int i = 0; i < messages.size(); i++) {
             Message m = messages.get(i);
             est.config(m);
             est.run(m);
+            System.err.println("\t" + m.getMessageString());
         }
     }
 
