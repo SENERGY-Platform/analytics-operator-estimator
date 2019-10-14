@@ -19,11 +19,7 @@ public class EstimatorTest {
         for (int i = 0; i < messages.size(); i++) {
             Message m = messages.get(i);
             est.config(m);
-            startMill = System.currentTimeMillis();
             est.run(m);
-            endMill = System.currentTimeMillis();
-            System.err.println("Message "+ i +" took " + (endMill - startMill) + " millis");
-            System.out.println("\t" + m.getMessageString());
         }
     }
 
@@ -33,6 +29,7 @@ public class EstimatorTest {
 
     @Test
     public void Benchmark() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"log_console\":\"true\",\"log_file\":\"true\"}}");
         run(0.05);
     }
 }

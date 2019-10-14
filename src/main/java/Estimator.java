@@ -15,6 +15,7 @@
  */
 
 
+import org.infai.seits.sepl.operators.Config;
 import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
 import weka.classifiers.functions.SMOreg;
@@ -25,6 +26,9 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -39,13 +43,30 @@ public class Estimator implements OperatorInterface {
     protected SMOreg classifier;
     protected ArrayList<Attribute> attributesList;
     protected Map<String, Instances> map;
+    protected boolean log_console, log_file;
+    protected BufferedWriter bw;
+    protected long counter;
 
 
     public Estimator(){
         attributesList = new ArrayList<>();
         attributesList.add(new Attribute("timestamp"));
         attributesList.add(new Attribute("value"));
-        map = new HashMap<>();
+        Config config = new Config();
+        log_console = Boolean.parseBoolean(config.getConfigValue("log_console", "false"));
+        log_file = Boolean.parseBoolean(config.getConfigValue("log_file", "false"));
+        if (log_file) {
+            try {
+                String filename = config.getConfigValue("log_filename", "./log.csv");
+                bw = new BufferedWriter(new FileWriter(filename));
+                bw.write("MessageNo,TimeInMs\n");
+                bw.flush();
+            } catch (IOException e) {
+                System.err.println("Problem when creating/opening file. Logs will not be written!");
+                e.printStackTrace();
+            }
+        }
+            map = new HashMap<>();
         System.out.println("Using SMOreg");
         classifier = new SMOreg();
         Kernel kernel = new PolyKernel();
@@ -57,10 +78,14 @@ public class Estimator implements OperatorInterface {
         }
         kernel.setChecksTurnedOff(true);
         classifier.setKernel(kernel);
+        counter = 0;
     }
 
     @Override
     public void run(Message message) {
+        long startTime = System.currentTimeMillis();
+        counter++;
+
         String METER_ID = message.getInput("device_id").getString();
 
         Instances instances;
@@ -100,6 +125,21 @@ public class Estimator implements OperatorInterface {
             message.output("Prediction", predEOY);
         } catch (Exception e) { //Building, filtering and predicting may throw exception
             System.err.println("Could not calculate prediction: " + e.getMessage());
+        }
+
+        long endTime = System.currentTimeMillis();
+        long diff = endTime - startTime;
+        if(log_console) {
+            System.out.println("Message " + counter + " took " + diff + " millis");
+        }
+        if(log_file && bw != null) {
+            try {
+                bw.write("" + counter + "," + diff + "\n");
+                bw.flush();
+            } catch (IOException e) {
+                System.err.println("Could not log!");
+                e.printStackTrace();
+            }
         }
     }
 
