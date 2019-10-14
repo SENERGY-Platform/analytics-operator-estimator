@@ -1,6 +1,9 @@
+import org.infai.seits.sepl.operators.Message;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+
+import java.util.List;
 
 public class EstimatorTest {
 
@@ -10,7 +13,18 @@ public class EstimatorTest {
 
 
     public void run(boolean[][] skipTests, double acurracy) throws Exception{
-        // tests disabled for benchmark branch
+        Estimator est = new Estimator();
+        List<Message> messages = TestMessageProvider.getTestMesssagesSet();
+        long startMill, endMill;
+        for (int i = 0; i < messages.size(); i++) {
+            Message m = messages.get(i);
+            est.config(m);
+            startMill = System.currentTimeMillis();
+            est.run(m);
+            endMill = System.currentTimeMillis();
+            System.err.println("Message "+ i +" took " + (endMill - startMill) + " millis");
+            System.out.println("\t" + m.getMessageString());
+        }
     }
 
     public void run(double acurracy) throws Exception{
@@ -18,38 +32,7 @@ public class EstimatorTest {
     }
 
     @Test
-    public void LinearRegression() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"LinearRegression\"}}");
-        run(0.05);
-    }
-    @Test
-    public void GaussianProcesses() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"GaussianProcesses\"}}");
-        run(0.6);
-    }
-    @Test
-    public void SimpleLinearRegression() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SimpleLinearRegression\"}}");
-        run(0.05);
-    }
-    @Test
-    public void SMOreg() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SMOreg\"}}");
-        boolean[][] skipTests = new boolean[30][3];
-        skipTests[0][0] = true;
-        skipTests[0][1] = true;
-        skipTests[0][2] = true;
-
-        run(skipTests, 0.05);
-    }
-    @Test
-    public void UnknownAlgorithm() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"UnknownAlgorithm\"}}");
-        run(0.05);
-    }
-    @Test
-    public void NoAlgorithm() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{}}");
+    public void Benchmark() throws Exception{
         run(0.05);
     }
 }

@@ -12,7 +12,7 @@ import java.util.List;
 public class TestMessageProvider {
 
     public static List<Message> getTestMesssagesSet() throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("src/test/resources/sample-data-small.json"));
+        BufferedReader br = new BufferedReader(new FileReader("src/test/resources/smartmeter-780000-1110004.json"));
         Builder builder = new Builder("1", "1");
         List<Message> messageSet = new ArrayList<>();
         JSONObject config = getConfig();
@@ -34,11 +34,9 @@ public class TestMessageProvider {
                 .put("FilterType", "DeviceId")
                 .put("FilterValue", "1")
                 .put("Mappings", new JSONArray()
-                        .put(new JSONObject().put("Source", "value.reading.timestamp").put("Dest", "timestamp"))
-                        .put(new JSONObject().put("Source", "value.reading.value").put("Dest", "value"))
-                        .put(new JSONObject().put("Source", "value.reading.DayPrediction").put("Dest", "DayPrediction"))
-                        .put(new JSONObject().put("Source", "value.reading.MonthPrediction").put("Dest", "MonthPrediction"))
-                        .put(new JSONObject().put("Source", "value.reading.YearPrediction").put("Dest", "YearPrediction"))
+                        .put(new JSONObject().put("Source", "value.reading.TIMESTAMP_UTC").put("Dest", "timestamp"))
+                        .put(new JSONObject().put("Source", "value.reading.CONSUMPTION").put("Dest", "value"))
+                        .put(new JSONObject().put("Source", "value.reading.METER_ID").put("Dest", "device_id"))
                 )));
         return config;
     }
