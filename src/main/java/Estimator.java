@@ -17,8 +17,9 @@
 
 import org.infai.seits.sepl.operators.Message;
 import org.infai.seits.sepl.operators.OperatorInterface;
-import weka.classifiers.Classifier;
 import weka.classifiers.functions.SMOreg;
+import weka.classifiers.functions.supportVector.Kernel;
+import weka.classifiers.functions.supportVector.PolyKernel;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -35,7 +36,7 @@ import java.util.Map;
 
 
 public class Estimator implements OperatorInterface {
-    protected Classifier classifier;
+    protected SMOreg classifier;
     protected ArrayList<Attribute> attributesList;
     protected Map<String, Instances> map;
 
@@ -47,6 +48,15 @@ public class Estimator implements OperatorInterface {
         map = new HashMap<>();
         System.out.println("Using SMOreg");
         classifier = new SMOreg();
+        Kernel kernel = new PolyKernel();
+        try {
+            kernel.setOptions(new String[]{"-C", "0"});
+        } catch (Exception e) {
+            System.err.println("Could not set kernel cache size to 0 (cache all)");
+            e.printStackTrace();
+        }
+        kernel.setChecksTurnedOff(true);
+        classifier.setKernel(kernel);
     }
 
     @Override
