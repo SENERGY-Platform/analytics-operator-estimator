@@ -75,9 +75,9 @@
             <version>c6827b0cdb19c69b5b8e914f7eb1dbf28709efdc</version>
         </dependency>
         <dependency>
-            <groupId>nz.ac.waikato.cms.weka</groupId>
-            <artifactId>weka-stable</artifactId>
-            <version>3.8.0</version>
+            <groupId>nz.ac.waikato.cms.moa</groupId>
+            <artifactId>moa</artifactId>
+            <version>2019.05.0</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
