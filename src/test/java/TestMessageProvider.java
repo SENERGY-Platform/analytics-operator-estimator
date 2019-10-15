@@ -12,7 +12,7 @@ import java.util.List;
 
 public class TestMessageProvider {
 
-    public static List<Message> getTestMesssagesSet() {
+    public static List<Message> getTestMesssagesSet(long maxMsgs) {
         BufferedReader br = null;
         List<Message> messageSet = new ArrayList<>();
         try {
@@ -22,7 +22,8 @@ public class TestMessageProvider {
             String line;
             Message m;
             JSONObject jsonObjectRead, jsonObject;
-            while ((line = br.readLine()) != null) {
+            long counter = 0;
+            while ((line = br.readLine()) != null && counter++ < maxMsgs) {
                 jsonObjectRead = new JSONObject(line);
                 jsonObject = new JSONObject().put("device_id", "1").put("value", new JSONObject().put("reading", jsonObjectRead));
                 m = new Message(builder.formatMessage(jsonObject.toString()));
@@ -45,6 +46,7 @@ public class TestMessageProvider {
                         .put(new JSONObject().put("Source", "value.reading.TIMESTAMP_UTC").put("Dest", "timestamp"))
                         .put(new JSONObject().put("Source", "value.reading.CONSUMPTION").put("Dest", "value"))
                         .put(new JSONObject().put("Source", "value.reading.METER_ID").put("Dest", "device_id"))
+                        .put(new JSONObject().put("Source", "value.reading.CONSUMPTION_EOY").put("Dest", "actual_value"))
                 )));
         return config;
     }

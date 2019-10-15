@@ -14,7 +14,7 @@ public class EstimatorTest {
 
     public void run(boolean[][] skipTests, double acurracy) throws Exception{
         Estimator est = new Estimator();
-        List<Message> messages = TestMessageProvider.getTestMesssagesSet();
+        List<Message> messages = TestMessageProvider.getTestMesssagesSet(10000);
         for (int i = 0; i < messages.size(); i++) {
             Message m = messages.get(i);
             est.config(m);

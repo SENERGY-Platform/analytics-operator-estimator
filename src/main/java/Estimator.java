@@ -103,7 +103,11 @@ public class Estimator implements OperatorInterface {
         Prediction p = container.classifier.getPredictionForInstance(eoy);
 
         message.output("PredictionTimestamp", new Timestamp((long) tsEOY).toString());
-        message.output("Prediction", p.getVotes()[0]);
+        double predcition = p.getVotes()[0];
+        Double compareValue = message.getInput("actual_value").getValue();
+        message.output("Prediction", predcition);
+        message.output("ActualValue", compareValue);
+        message.output("MessagesUsedForPrediction", container.numTrained);
 
         // LOGGING
         long endTime = System.currentTimeMillis();
@@ -127,5 +131,6 @@ public class Estimator implements OperatorInterface {
         message.addInput("value");
         message.addInput("timestamp");
         message.addInput("device_id");
+        message.addInput("actual_value");
     }
 }
