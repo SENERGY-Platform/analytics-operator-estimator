@@ -96,14 +96,30 @@ public class Estimator implements OperatorInterface {
         Instance eoy = new DenseInstance(1); //End Of Year
         eoy.setValue(0, tsEOY);
         eoy.setDataset(container.header);
-
-        container.classifier.trainOnInstance(instance);
+        try {
+            container.classifier.trainOnInstance(instance);
+        } catch(Exception e) {
+            System.err.println("Could not train instance, skipping this message, see error below");
+            e.printStackTrace();
+            return;
+        }
         container.numTrained++;
         map.put(METER_ID, container);
-        Prediction p = container.classifier.getPredictionForInstance(eoy);
+        Prediction p;
+        try {
+            p = container.classifier.getPredictionForInstance(eoy);
+        }catch (Exception e){
+            System.err.println("Could not get prediction, skipping this message, see error below");
+            e.printStackTrace();
+            return;
+        }
 
-        message.output("PredictionTimestamp", new Timestamp((long) tsEOY).toString());
         double predcition = p.getVotes()[0];
+        if(Double.isNaN(predcition)){
+            System.out.println("Classifier gave NaN as prediction, skipping this message");
+            return;
+        }
+        message.output("PredictionTimestamp", new Timestamp((long) tsEOY).toString());
         Double compareValue = message.getInput("actual_value").getValue();
         message.output("Prediction", predcition);
         message.output("ActualValue", compareValue);
