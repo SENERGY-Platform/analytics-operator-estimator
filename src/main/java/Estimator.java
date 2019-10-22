@@ -99,7 +99,7 @@ public class Estimator implements OperatorInterface {
         try {
             container.classifier.trainOnInstance(instance);
         } catch(Exception e) {
-            System.err.println("Could not train instance, skipping this message, see error below");
+            System.err.println("Could not train instance, skipping this message, see error below. Device ID was " + METER_ID);
             e.printStackTrace();
             return;
         }
