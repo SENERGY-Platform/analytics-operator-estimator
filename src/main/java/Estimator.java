@@ -124,6 +124,7 @@ public class Estimator implements OperatorInterface {
         message.output("Prediction", predcition);
         message.output("ActualValue", compareValue);
         message.output("MessagesUsedForPrediction", container.numTrained);
+        message.output("deviceid", METER_ID);
 
         // LOGGING
         long endTime = System.currentTimeMillis();
