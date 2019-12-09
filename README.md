@@ -25,5 +25,8 @@ Since the operator is mainly written to predict consumption data it will provide
    + 'SimpleLinearRegression'
    + 'GaussianProcesses'
    + 'SMOreg'
+   + 'online-AdaptiveRandomForestRegressor' (untested)
+   + 'online-AdaGrad' (untested)
+   + 'online-SGD' (untested)
  * Timezone (string): Used to determine end of day/month/year. Can be anything able to be parsed by [ZoneId.of(String)](https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html#of-java.lang.String-).
    Default value is '+02:00'.

@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
+import org.infai.seits.sepl.operators.Config;
+import org.infai.seits.sepl.operators.OperatorInterface;
 import org.infai.seits.sepl.operators.Stream;
 
 public class Operator {
 
     public static void main(String[] args) {
         Stream stream  = new Stream();
-        stream.start(new Estimator());
+        Config config = new Config();
+        String algorithm = config.getConfigValue("Algorithm", "");
+        OperatorInterface impl;
+        if(algorithm.startsWith("online"))
+            impl = new OnlineEstimator();
+        else
+            impl = new Estimator();
+        stream.start(impl);
     }
 }
