@@ -56,7 +56,7 @@ public class EstimatorTest {
             if(!skipTests[i][2]) {
                 try {
                     m.addInput("YearPrediction");
-                    double actual = Double.parseDouble(m.getMessageString().split("YearPrediction\":")[1].split("}")[0]);
+                    double actual = Double.parseDouble(m.getMessageString().split("YearPrediction\":")[1].split(",")[0]);
                     double expected = m.getInput("YearPrediction").getValue();
                     Assert.assertEquals(expected, actual, expected * acurracy);
                     System.out.println("Successfully predicted for year.");

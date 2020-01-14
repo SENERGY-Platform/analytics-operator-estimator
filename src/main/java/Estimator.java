@@ -148,6 +148,7 @@ public class Estimator implements OperatorInterface {
                 //Submit results
                 message.output("DayTimestamp", tsEOD);
                 message.output("DayPrediction", predEOD - offset);
+                message.output("DayPredictionTotal", predEOD);
 
             }catch(Exception e){ //Building, filtering and predicting may throw exception
                 System.err.println("Could not calculate prediction: " + e.getMessage());
@@ -165,6 +166,8 @@ public class Estimator implements OperatorInterface {
                 //Submit results
                 message.output("MonthTimestamp", tsEOM);
                 message.output("MonthPrediction", predEOM - offset);
+                message.output("MonthPredictionTotal", predEOM);
+
 
             } catch (Exception e) { //Building, filtering and predicting may throw exception
                 System.err.println("Could not calculate prediction: " + e.getMessage());
@@ -183,6 +186,7 @@ public class Estimator implements OperatorInterface {
                 //Submit results
                 message.output("YearTimestamp", tsEOY);
                 message.output("YearPrediction", predEOY - offset);
+                message.output("YearPredictionTotal", predEOY);
             } catch (Exception e) { //Building, filtering and predicting may throw exception
                 System.err.println("Could not calculate prediction: " + e.getMessage());
             }
