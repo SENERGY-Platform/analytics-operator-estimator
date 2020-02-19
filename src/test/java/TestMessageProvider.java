@@ -42,4 +42,14 @@ public class TestMessageProvider {
                 )));
         return config;
     }
+
+    public static Message getMessageWithValues(String timestamp, double value) {
+        JSONObject config = getConfig();
+        JSONObject jsonObjectRead = new JSONObject("{\"value\": " + value + ", \"timestamp\": \"" + timestamp + "\"}");
+        JSONObject jsonObject = new JSONObject().put("device_id", "1").put("value", new JSONObject().put("reading", jsonObjectRead));
+        Builder builder = new Builder("1", "1");
+        Message m = new Message(builder.formatMessage(jsonObject.toString()));
+        m.setConfig(config.toString());
+        return m;
+    }
 }

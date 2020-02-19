@@ -22,13 +22,7 @@ public class Operator {
 
     public static void main(String[] args) {
         Stream stream  = new Stream();
-        Config config = new Config();
-        String algorithm = config.getConfigValue("Algorithm", "");
-        OperatorInterface impl;
-        if(algorithm.startsWith("online"))
-            impl = new OnlineEstimator();
-        else
-            impl = new Estimator();
+        OperatorInterface impl = EstimatorFactory.createNewInstance();
         stream.start(impl);
     }
 }
