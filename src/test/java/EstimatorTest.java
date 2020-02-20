@@ -1,4 +1,5 @@
 import org.infai.seits.sepl.operators.Message;
+import org.infai.seits.sepl.operators.OperatorInterface;
 import org.joda.time.DateTimeUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -14,8 +15,8 @@ public class EstimatorTest {
             = new EnvironmentVariables();
 
 
-    public void run(boolean[][] skipTests, double acurracy) throws Exception{
-        Estimator est = new Estimator();
+    public void run(boolean[][] skipTests, double accuracy) throws Exception{
+        OperatorInterface est = EstimatorFactory.createNewInstance();
         List<Message> messages = TestMessageProvider.getTestMesssagesSet();
         for (int i = 0; i < messages.size(); i++) {
             Message m = messages.get(i);
@@ -28,7 +29,7 @@ public class EstimatorTest {
                     m.addInput("DayPrediction");
                     double actual = Double.parseDouble(m.getMessageString().split("DayPrediction\":")[1].split(",")[0]);
                     double expected = m.getInput("DayPrediction").getValue();
-                    Assert.assertEquals(expected, actual, expected * acurracy);
+                    Assert.assertEquals(expected, actual, expected * accuracy);
                     System.out.println("Successfully predicted for day.");
                 }catch (NullPointerException|IndexOutOfBoundsException e){
                     System.out.println("Skipped test for day because no expected values were provided.");
@@ -43,7 +44,7 @@ public class EstimatorTest {
                     m.addInput("MonthPrediction");
                     double actual = Double.parseDouble(m.getMessageString().split("MonthPrediction\":")[1].split(",")[0]);
                     double expected = m.getInput("MonthPrediction").getValue();
-                    Assert.assertEquals(expected, actual, expected * acurracy);
+                    Assert.assertEquals(expected, actual, expected * accuracy);
                     System.out.println("Successfully predicted for month.");
                 } catch (NullPointerException | IndexOutOfBoundsException e) {
                     System.out.println("Skipped test for month because no expected values were provided.");
@@ -56,9 +57,9 @@ public class EstimatorTest {
             if(!skipTests[i][2]) {
                 try {
                     m.addInput("YearPrediction");
-                    double actual = Double.parseDouble(m.getMessageString().split("YearPrediction\":")[1].split("}")[0]);
+                    double actual = Double.parseDouble(m.getMessageString().split("YearPrediction\":")[1].split(",")[0]);
                     double expected = m.getInput("YearPrediction").getValue();
-                    Assert.assertEquals(expected, actual, expected * acurracy);
+                    Assert.assertEquals(expected, actual, expected * accuracy);
                     System.out.println("Successfully predicted for year.");
                 } catch (NullPointerException | IndexOutOfBoundsException e) {
                     System.out.println("Skipped test for year because no expected values were provided.");
@@ -76,31 +77,6 @@ public class EstimatorTest {
     }
 
     @Test
-    public void LinearRegression() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"LinearRegression\"}}");
-        run(0.05);
-    }
-    @Test
-    public void GaussianProcesses() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"GaussianProcesses\"}}");
-        run(0.6);
-    }
-    @Test
-    public void SimpleLinearRegression() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SimpleLinearRegression\"}}");
-        run(0.05);
-    }
-    @Test
-    public void SMOreg() throws Exception{
-        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"SMOreg\"}}");
-        boolean[][] skipTests = new boolean[30][3];
-        skipTests[0][0] = true;
-        skipTests[0][1] = true;
-        skipTests[0][2] = true;
-
-        run(skipTests, 0.05);
-    }
-    @Test
     public void UnknownAlgorithm() throws Exception{
         environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"UnknownAlgorithm\"}}");
         run(0.05);
@@ -108,6 +84,11 @@ public class EstimatorTest {
     @Test
     public void NoAlgorithm() throws Exception{
         environmentVariables.set("CONFIG", "{\"config\":{}}");
+        run(0.05);
+    }
+    @Test
+    public void ApacheSimple() throws Exception{
+        environmentVariables.set("CONFIG", "{\"config\":{\"Algorithm\":\"apache-simple\"}}");
         run(0.05);
     }
 }

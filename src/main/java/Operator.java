@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+import org.infai.seits.sepl.operators.Config;
+import org.infai.seits.sepl.operators.OperatorInterface;
 import org.infai.seits.sepl.operators.Stream;
 
 public class Operator {
 
     public static void main(String[] args) {
         Stream stream  = new Stream();
-        stream.start(new Estimator());
+        OperatorInterface impl = EstimatorFactory.createNewInstance();
+        stream.start(impl);
     }
 }

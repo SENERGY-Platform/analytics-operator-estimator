@@ -13,17 +13,17 @@ Since the operator is mainly written to predict consumption data it will provide
 ## Outputs
 
 * DayTimestamp (string): String representation of the timestamp of the end of the current day
-* DayPrediction (float): Prediction of the value at DayTimestamp
+* DayPrediction (float): Prediction of the value at DayTimestamp with subtraction of estimated value at beginning of day
+* DayPredictionTotal (float): Prediction of the value at DayTimestamp
 * MonthTimestamp (string): String representation of the timestamp of the end of the current month
 * MonthPrediction (float): Prediction of the value at MonthTimestamp
+* MonthPredictionTotal (float): Prediction of the value at MonthTimestamp with subtraction of estimated value at beginning of month
 * YearTimestamp (string): String representation of the timestamp of the end of the current year
 * YearPrediction (float): Prediction of the value at YearTimestamp
+* YearPredictionTotal (float): Prediction of the value at YearTimestamp with subtraction of estimated value at beginning of month
 
 ## Configs
  * Algorithm (string): Can be either one of
-   + 'LinearRegression' (default)
-   + 'SimpleLinearRegression'
-   + 'GaussianProcesses'
-   + 'SMOreg'
+   + 'apache-simple' (default): Linear regression with Apache commons math library
  * Timezone (string): Used to determine end of day/month/year. Can be anything able to be parsed by [ZoneId.of(String)](https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html#of-java.lang.String-).
-   Default value is '+02:00'.
+   Default value is 'Europe/Berlin'.
