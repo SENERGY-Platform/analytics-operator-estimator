@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 
 public class Estimator implements OperatorInterface {
@@ -19,7 +20,12 @@ public class Estimator implements OperatorInterface {
 
     @Override
     public void run(Message message) {
-        TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
+        try {
+            TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
+        } catch (DateTimeParseException e) {
+            System.err.println("Skipping message: Could not parse date: " + message.getInput("timestamp").getString());
+            e.printStackTrace();
+        }
 
         //Prepare values from message
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
