@@ -20,11 +20,13 @@ public class Estimator implements OperatorInterface {
 
     @Override
     public void run(Message message) {
+        TemporalAccessor temporalAccessor;
         try {
-            TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
+            temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
         } catch (DateTimeParseException e) {
             System.err.println("Skipping message: Could not parse date: " + message.getInput("timestamp").getString());
             e.printStackTrace();
+            return;
         }
 
         //Prepare values from message
