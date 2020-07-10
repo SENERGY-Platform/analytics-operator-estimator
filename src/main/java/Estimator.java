@@ -12,17 +12,20 @@ import java.time.temporal.TemporalAccessor;
 public class Estimator implements OperatorInterface {
     EstimatorInterface estimator;
     ZoneId timezone;
+    long ignoreValuesOlderThanMs;
 
-    public Estimator(EstimatorInterface estimator, ZoneId timezone){
+    public Estimator(EstimatorInterface estimator, ZoneId timezone, long ignoreValuesOlderThanMs) {
         this.estimator = estimator;
         this.timezone = timezone;
+        this.ignoreValuesOlderThanMs = ignoreValuesOlderThanMs;
     }
 
     @Override
     public void run(Message message) {
         TemporalAccessor temporalAccessor;
+        String messageTimestamp = message.getInput("timestamp").getString();
         try {
-            temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(message.getInput("timestamp").getString()));
+            temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(messageTimestamp));
         } catch (DateTimeParseException e) {
             System.err.println("Skipping message: Could not parse date: " + message.getInput("timestamp").getString());
             e.printStackTrace();
@@ -33,10 +36,16 @@ public class Estimator implements OperatorInterface {
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
         final double value = message.getInput("value").getValue();
 
-        estimator.addData(timestamp, value);
-
         //Calculate timestamps for prediction
         long currentMillis = DateTimeUtils.currentTimeMillis(); //Needs to use this method for testing
+        if (currentMillis - timestamp > ignoreValuesOlderThanMs) {
+            System.err.println("Skipping message: Value too old: " + messageTimestamp + " was more than one year ago");
+            return;
+        }
+
+        //Add data to regression
+        estimator.addData(timestamp, value);
+
         Instant instant = Instant.ofEpochMilli(currentMillis);
 
         ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, timezone);
