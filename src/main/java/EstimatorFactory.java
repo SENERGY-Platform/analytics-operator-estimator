@@ -11,12 +11,13 @@ public class EstimatorFactory {
         String algorithm = config.getConfigValue("Algorithm", "apache-simple");
         String configTimezone = config.getConfigValue("Timezone", "+02");
         ZoneId timezone = ZoneId.of(configTimezone); //As configured
+        long ignoreValuesOlderThanMs = Long.parseLong(config.getConfigValue("ignoreValuesOlderThanMs", "31557600000"));
         EstimatorInterface estimator;
         switch(algorithm) {
             case "apache-simple":
             default:
                 estimator = new ApacheSimpleRegression();
         }
-        return new Estimator(estimator, timezone);
+        return new Estimator(estimator, timezone, ignoreValuesOlderThanMs);
     }
 }

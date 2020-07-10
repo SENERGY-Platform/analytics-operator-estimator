@@ -27,3 +27,4 @@ Since the operator is mainly written to predict consumption data it will provide
    + 'apache-simple' (default): Linear regression with Apache commons math library
  * Timezone (string): Used to determine end of day/month/year. Can be anything able to be parsed by [ZoneId.of(String)](https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html#of-java.lang.String-).
    Default value is 'Europe/Berlin'.
+ * ignoreValuesOlderThanMs (string): Ignore values that are older than the specified time in miliseconds. Dafults to 31557600000 (one year).
