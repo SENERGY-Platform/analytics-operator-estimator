@@ -1,5 +1,5 @@
-import org.infai.seits.sepl.operators.Message;
-import org.infai.seits.sepl.operators.OperatorInterface;
+import org.infai.ses.senergy.operators.Message;
+import org.infai.ses.senergy.operators.OperatorInterface;
 import org.joda.time.DateTimeUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -20,7 +20,7 @@ public class EstimatorTest {
         List<Message> messages = TestMessageProvider.getTestMesssagesSet("src/test/resources/sample-data-small.json");
         for (int i = 0; i < messages.size(); i++) {
             Message m = messages.get(i);
-            est.config(m);
+            est.configMessage(m);
             DateTimeUtils.setCurrentMillisFixed(DateParser.parseDateMills(m.getInput("timestamp").getString()));
             est.run(m);
 
@@ -101,7 +101,7 @@ public class EstimatorTest {
         List<Message> messages = TestMessageProvider.getTestMesssagesSet("src/test/resources/sample-data-no-expected.json");
         for (int i = 0; i < messages.size(); i++) {
             Message m = messages.get(i);
-            est.config(m);
+            est.configMessage(m);
             est.run(m);
             try {
                 double actual = Double.parseDouble(m.getMessageString().split("DayPrediction\":")[1].split(",")[0]);

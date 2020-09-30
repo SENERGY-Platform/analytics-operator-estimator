@@ -1,5 +1,5 @@
-import org.infai.seits.sepl.operators.Message;
-import org.infai.seits.sepl.operators.OperatorInterface;
+import org.infai.ses.senergy.operators.Message;
+import org.infai.ses.senergy.operators.OperatorInterface;
 import org.joda.time.DateTimeUtils;
 
 import java.time.Instant;
@@ -89,7 +89,7 @@ public class Estimator implements OperatorInterface {
     }
 
     @Override
-    public void config(Message message) {
+    public void configMessage(Message message) {
         message.addInput("value");
         message.addInput("timestamp");
     }

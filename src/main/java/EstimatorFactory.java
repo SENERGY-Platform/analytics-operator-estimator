@@ -1,5 +1,5 @@
-import org.infai.seits.sepl.operators.Config;
-import org.infai.seits.sepl.operators.OperatorInterface;
+import org.infai.ses.senergy.operators.Config;
+import org.infai.ses.senergy.operators.OperatorInterface;
 
 import java.time.ZoneId;
 
