@@ -15,14 +15,14 @@
  */
 
 
-import org.infai.ses.senergy.operators.OperatorInterface;
+import org.infai.ses.senergy.operators.BaseOperator;
 import org.infai.ses.senergy.operators.Stream;
 
 public class Operator {
 
     public static void main(String[] args) {
         Stream stream  = new Stream();
-        OperatorInterface impl = EstimatorFactory.createNewInstance();
+        BaseOperator impl = EstimatorFactory.createNewInstance();
         stream.start(impl);
     }
 }

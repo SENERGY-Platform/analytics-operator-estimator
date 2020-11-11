@@ -1,5 +1,6 @@
+import org.infai.ses.senergy.exceptions.NoValueException;
+import org.infai.ses.senergy.operators.BaseOperator;
 import org.infai.ses.senergy.operators.Message;
-import org.infai.ses.senergy.operators.OperatorInterface;
 import org.joda.time.DateTimeUtils;
 
 import java.time.Instant;
@@ -9,10 +10,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 
-public class Estimator implements OperatorInterface {
-    EstimatorInterface estimator;
-    ZoneId timezone;
-    long ignoreValuesOlderThanMs;
+public class Estimator extends BaseOperator {
+    private EstimatorInterface estimator;
+    private ZoneId timezone;
+    private long ignoreValuesOlderThanMs;
 
     public Estimator(EstimatorInterface estimator, ZoneId timezone, long ignoreValuesOlderThanMs) {
         this.estimator = estimator;
@@ -20,10 +21,20 @@ public class Estimator implements OperatorInterface {
         this.ignoreValuesOlderThanMs = ignoreValuesOlderThanMs;
     }
 
+    public EstimatorInterface getEstimator() {
+        return estimator;
+    }
+
     @Override
     public void run(Message message) {
         TemporalAccessor temporalAccessor;
-        String messageTimestamp = message.getInput("timestamp").getString();
+        String messageTimestamp;
+        try {
+            messageTimestamp = message.getInput("timestamp").getString();
+        } catch (NullPointerException npe) {
+            System.err.println("Message does not have a timestamp!");
+            return;
+        }
         try {
             temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(messageTimestamp));
         } catch (DateTimeParseException e) {
@@ -34,7 +45,13 @@ public class Estimator implements OperatorInterface {
 
         //Prepare values from message
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
-        final double value = message.getInput("value").getValue();
+        final double value;
+        try {
+            value = message.getInput("value").getValue();
+        } catch (NoValueException e) {
+            System.err.println(e.getMessage());
+            return;
+        }
 
         //Calculate timestamps for prediction
         long currentMillis = DateTimeUtils.currentTimeMillis(); //Needs to use this method for testing
@@ -89,8 +106,9 @@ public class Estimator implements OperatorInterface {
     }
 
     @Override
-    public void configMessage(Message message) {
+    public Message configMessage(Message message) {
         message.addInput("value");
         message.addInput("timestamp");
+        return message;
     }
 }
