@@ -43,6 +43,14 @@ public class Estimator extends BaseOperator {
             return;
         }
 
+        String message_id;
+        try {
+            message_id = message.getInput("message_id").getString();
+        } catch (NullPointerException npe) {
+            System.err.println("Message does not have a message_id!");
+            return;
+        }
+
         //Prepare values from message
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
         final double value;
@@ -103,12 +111,16 @@ public class Estimator extends BaseOperator {
         message.output("YearTimestamp", tsEOY);
         message.output("YearPrediction", predEOY - offset);
         message.output("YearPredictionTotal", predEOY);
+
+        message.output("timestamp", messageTimestamp);
+        message.output("message_id", message_id);
     }
 
     @Override
     public Message configMessage(Message message) {
         message.addInput("value");
         message.addInput("timestamp");
+        message.addInput("message_id");
         return message;
     }
 }

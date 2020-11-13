@@ -75,6 +75,10 @@ public class EstimatorTest {
             } else {
                 System.out.println("Skipped test for year as requested");
             }
+            String message_id = (String) message.getMessage().getOutputMessage().getAnalytics().get("message_id");
+            Assert.assertEquals(message_id, "0");
+            String timestamp = (String) message.getMessage().getOutputMessage().getAnalytics().get("timestamp");
+            Assert.assertTrue(timestamp.length() > 0);
         }
         return est;
     }
@@ -182,6 +186,10 @@ public class EstimatorTest {
                 "        {\n" +
                 "          \"dest\": \"timestamp\",\n" +
                 "          \"source\": \"value.reading.timestamp\"\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"dest\": \"message_id\",\n" +
+                "          \"source\": \"value.reading.message_id\"\n" +
                 "        }\n" +
                 "      ]\n" +
                 "    }\n" +
