@@ -1,5 +1,3 @@
-
-import org.infai.ses.senergy.operators.BaseOperator;
 import org.infai.ses.senergy.operators.Config;
 import org.infai.ses.senergy.utils.ConfigProvider;
 
@@ -19,6 +17,12 @@ public class EstimatorFactory {
         long ignoreValuesOlderThanMs = Long.parseLong(config.getConfigValue("ignoreValuesOlderThanMs", "31557600000"));
         EstimatorInterface estimator;
         switch(algorithm) {
+            case "moa-fimtdd":
+                estimator = new MoaFIMTDDRegression();
+                break;
+            case "moa-arf":
+                estimator = new MoaARF();
+                break;
             case "apache-simple":
             default:
                 estimator = new ApacheSimpleRegression();

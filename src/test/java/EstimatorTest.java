@@ -41,9 +41,8 @@ public class EstimatorTest {
                     double actual = (double) message.getMessage().getOutputMessage().getAnalytics().get("DayPrediction");
                     double expected = (double) deviceMessageModel.getValue().get("DayPrediction");
                     Assert.assertEquals(expected, actual, expected * accuracy);
-                    System.out.println("Successfully predicted for day.");
-                } catch (NullPointerException e) {
-                    System.out.println("Skipped test for day because no expected values were provided.");
+                    System.out.println("Successfully predicted for day. Expected " + expected + ", got " + actual);
+                } catch (NullPointerException ignored) {
                 } catch (NumberFormatException e) {
                     Assert.fail("Failed test: Operator did not provide prediction");
                 }
@@ -55,9 +54,8 @@ public class EstimatorTest {
                     double actual = (double) message.getMessage().getOutputMessage().getAnalytics().get("MonthPrediction");
                     double expected = (double) deviceMessageModel.getValue().get("MonthPrediction");
                     Assert.assertEquals(expected, actual, expected * accuracy);
-                    System.out.println("Successfully predicted for month.");
-                } catch (NullPointerException e) {
-                    System.out.println("Skipped test for month because no expected values were provided.");
+                    System.out.println("Successfully predicted for month. Expected " + expected + ", got " + actual);
+                } catch (NullPointerException ignored) {
                 } catch (NumberFormatException e) {
                     Assert.fail("Failed test: Operator did not provide prediction");
                 }
@@ -69,9 +67,8 @@ public class EstimatorTest {
                     double actual = (double) message.getMessage().getOutputMessage().getAnalytics().get("YearPrediction");
                     double expected = (double) deviceMessageModel.getValue().get("YearPrediction");
                     Assert.assertEquals(expected, actual, expected * accuracy);
-                    System.out.println("Successfully predicted for year.");
-                } catch (NullPointerException e) {
-                    System.out.println("Skipped test for year because no expected values were provided.");
+                    System.out.println("Successfully predicted for year. Expected " + expected + ", got " + actual);
+                } catch (NullPointerException ignored) {
                 } catch (NumberFormatException e) {
                     Assert.fail("Failed test: Operator did not provide prediction");
                 }
@@ -107,6 +104,24 @@ public class EstimatorTest {
         Assert.assertEquals(est.getEstimator().getClass(), ApacheSimpleRegression.class);
     }
 
+    @Test
+    public void MoaFIMTDD() throws Exception {
+        JSONObject jsonConfig = new JSONObject(getConfig());
+        jsonConfig.put("config", new JSONObject("{\"Algorithm\":\"moa-fimtdd\"}"));
+
+        Estimator est = run(new Config(jsonConfig.toString()), 1);
+        Assert.assertEquals(est.getEstimator().getClass(), MoaFIMTDDRegression.class);
+    }
+
+    @Test
+    public void MoaARF() throws Exception {
+        JSONObject jsonConfig = new JSONObject(getConfig());
+        jsonConfig.put("config", new JSONObject("{\"Algorithm\":\"moa-arf\"}"));
+
+        Estimator est = run(new Config(jsonConfig.toString()), 1);
+        Assert.assertEquals(est.getEstimator().getClass(), MoaARF.class);
+    }
+
 
     @Test
     public void IgnoreOldValues() {
@@ -118,8 +133,7 @@ public class EstimatorTest {
         Message m = new Message();
         est.configMessage(m);
         MessageModel model = new MessageModel();
-        for (int i = 0; i < messages.size(); i++) {
-            Object mo = messages.get(i);
+        for (Object mo : messages) {
             DeviceMessageModel deviceMessageModel = JSONHelper.getObjectFromJSONString(mo.toString(), DeviceMessageModel.class);
             assert deviceMessageModel != null;
             model.putMessage(topicName, Helper.deviceToInputMessageModel(deviceMessageModel, topicName));
