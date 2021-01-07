@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 RUN mvn clean install
 
 FROM openjdk:11-jre-slim
+LABEL org.opencontainers.image.source https://github.com/SENERGY-Platform/analytics-operator-estimator
 ENV NAME estimator
 COPY --from=builder /usr/src/app/target/operator-${NAME}-jar-with-dependencies.jar /opt/operator.jar
 ADD https://github.com/jmxtrans/jmxtrans-agent/releases/download/jmxtrans-agent-1.2.6/jmxtrans-agent-1.2.6.jar opt/jmxtrans-agent.jar
