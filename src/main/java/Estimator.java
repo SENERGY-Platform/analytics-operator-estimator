@@ -35,6 +35,10 @@ public class Estimator extends BaseOperator {
             System.err.println("Message does not have a timestamp!");
             return;
         }
+        if (messageTimestamp == null) {
+            System.err.println("Skipping message: timestamp is null");
+            return;
+        }
         try {
             temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(messageTimestamp));
         } catch (DateTimeParseException e) {
