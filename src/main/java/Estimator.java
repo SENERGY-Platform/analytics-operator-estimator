@@ -30,8 +30,8 @@ public class Estimator extends BaseOperator {
         TemporalAccessor temporalAccessor;
         String messageTimestamp;
         try {
-            messageTimestamp = message.getInput("timestamp").getString();
-        } catch (NullPointerException npe) {
+            messageTimestamp = message.getFlexInput("timestamp").getString();
+        } catch (NullPointerException | NoValueException npe) {
             System.err.println("Message does not have a timestamp!");
             return;
         }
@@ -42,7 +42,12 @@ public class Estimator extends BaseOperator {
         try {
             temporalAccessor = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(DateParser.parseDate(messageTimestamp));
         } catch (DateTimeParseException e) {
-            System.err.println("Skipping message: Could not parse date: " + message.getInput("timestamp").getString());
+            try {
+                System.err.println("Skipping message: Could not parse date: " + message.getFlexInput("timestamp").getString());
+            } catch (NoValueException noValueException) {
+                noValueException.printStackTrace();
+                return;
+            }
             e.printStackTrace();
             return;
         }
@@ -51,7 +56,7 @@ public class Estimator extends BaseOperator {
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
         final double value;
         try {
-            value = message.getInput("value").getValue();
+            value = message.getFlexInput("value").getValue();
         } catch (NoValueException e) {
             System.err.println(e.getMessage());
             return;
@@ -111,8 +116,8 @@ public class Estimator extends BaseOperator {
 
     @Override
     public Message configMessage(Message message) {
-        message.addInput("value");
-        message.addInput("timestamp");
+        message.addFlexInput("value");
+        message.addFlexInput("timestamp");
         return message;
     }
 }
