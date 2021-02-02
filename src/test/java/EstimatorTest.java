@@ -1,3 +1,4 @@
+import org.infai.ses.senergy.exceptions.NoValueException;
 import org.infai.ses.senergy.models.DeviceMessageModel;
 import org.infai.ses.senergy.models.MessageModel;
 import org.infai.ses.senergy.operators.BaseOperator;
@@ -33,8 +34,8 @@ public class EstimatorTest {
             message.setMessage(model);
 
             try {
-                DateTimeUtils.setCurrentMillisFixed(DateParser.parseDateMills(message.getInput("timestamp").getString()));
-            } catch(NullPointerException e) {
+                DateTimeUtils.setCurrentMillisFixed(DateParser.parseDateMills(message.getFlexInput("timestamp").getString()));
+            } catch(NullPointerException | NoValueException e) {
                 System.out.println("Skipped test for message without timestamp");
             }
 

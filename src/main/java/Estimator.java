@@ -54,9 +54,12 @@ public class Estimator extends BaseOperator {
 
         //Prepare values from message
         final long timestamp = Instant.from(temporalAccessor).toEpochMilli();
-        final double value;
+        final Double value;
         try {
             value = message.getFlexInput("value").getValue();
+            if (value == null) {
+                throw new NoValueException("Value is null");
+            }
         } catch (NoValueException e) {
             System.err.println(e.getMessage());
             return;
