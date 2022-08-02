@@ -23,7 +23,7 @@ public class Estimator extends BaseOperator {
         this.ignoreValuesOlderThanMs = ignoreValuesOlderThanMs;
         FileInputStream streamIn = null;
         try {
-            streamIn = new FileInputStream("data/" + estimator.getClass().getName() + ".bin");
+            streamIn = new FileInputStream("/opt/data/" + estimator.getClass().getName() + ".bin");
             estimator.loadSaved(streamIn);
         } catch (Exception e) {
             System.err.println("Could not load saved data: " + e.getMessage());
@@ -38,8 +38,8 @@ public class Estimator extends BaseOperator {
             System.out.println("Shutdown Detected. Saving Progress...");
             FileOutputStream streamOut = null;
             try {
-                new File("data").mkdir();
-                streamOut = new FileOutputStream("data/" + estimator.getClass().getName() + ".bin");
+                new File("/opt/data").mkdir();
+                streamOut = new FileOutputStream("/opt/data/" + estimator.getClass().getName() + ".bin");
                 estimator.save(streamOut);
             } catch (Exception e) {
                 System.err.println("Could not save data: " + e.getMessage());
