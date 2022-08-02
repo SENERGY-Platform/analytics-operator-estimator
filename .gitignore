@@ -17,3 +17,5 @@ target
 
 *.iml
 .attach_pid*
+
+data

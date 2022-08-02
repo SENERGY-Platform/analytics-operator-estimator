@@ -4,6 +4,7 @@ import org.infai.ses.senergy.operators.Message;
 import org.infai.ses.senergy.util.DateParser;
 import org.joda.time.DateTimeUtils;
 
+import java.io.*;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -20,6 +21,37 @@ public class Estimator extends BaseOperator {
         this.estimator = estimator;
         this.timezone = timezone;
         this.ignoreValuesOlderThanMs = ignoreValuesOlderThanMs;
+        FileInputStream streamIn = null;
+        try {
+            streamIn = new FileInputStream("data/" + estimator.getClass().getName() + ".bin");
+            estimator.loadSaved(streamIn);
+        } catch (Exception e) {
+            System.err.println("Could not load saved data: " + e.getMessage());
+        } finally {
+            try {
+                if (streamIn != null) streamIn.close();
+            } catch (IOException e) {
+                System.err.println("Could not close save file: " + e.getMessage());
+            }
+        }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutdown Detected. Saving Progress...");
+            FileOutputStream streamOut = null;
+            try {
+                new File("data").mkdir();
+                streamOut = new FileOutputStream("data/" + estimator.getClass().getName() + ".bin");
+                estimator.save(streamOut);
+            } catch (Exception e) {
+                System.err.println("Could not save data: " + e.getMessage());
+            } finally {
+                try {
+                    if (streamOut != null) streamOut.close();
+                } catch (IOException e) {
+                    System.err.println("Could not close save file: " + e.getMessage());
+                }
+            }
+            System.out.println("Shutdown Hook Completed");
+        }));
     }
 
     public EstimatorInterface getEstimator() {
