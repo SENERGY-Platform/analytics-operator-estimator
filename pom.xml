@@ -61,10 +61,6 @@
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
 		</repository>
-        <repository>
-            <id>simulation.tudelft.nl</id>
-            <url>https://simulation.tudelft.nl/maven/</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -108,7 +104,7 @@
         <dependency>
             <groupId>nz.ac.waikato.cms.moa</groupId>
             <artifactId>moa</artifactId>
-            <version>2020.07.1</version>
+            <version>2024.07.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
